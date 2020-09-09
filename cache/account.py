@@ -1,7 +1,9 @@
 from enum import IntEnum
 
-from .token_info import TokenInfos, TokenInfo
+from .token_info import TokenInfos
 from .util import mantissa_div, mantissa_mul
+from violas_client.banktypes.bytecode import CodeType
+from violas_client.vlstypes.view import TransactionView
 
 class AccountLockAmounts():
     def __init__(self, **kwargs):
@@ -36,6 +38,9 @@ class AccountLockAmounts():
             price = info.get("price")
             value += self.get_collateral_value(amount, exchange_rate, price, collateral_factor)
         return value
+
+    def __repr__(self):
+        return str(self.amounts)
 
 
 class AccountBorrowAmounts():
@@ -81,115 +86,173 @@ class AccountBorrowAmounts():
             value += self.get_borrow_value(amount, borrow_index, cur_borrow_index, price)
         return value
 
+    def __repr__(self):
+        return str(self.amounts)
+
 class LiquidationState(IntEnum):
     #正常
     HEALTH = 0
-    #下一分钟就需要被清算
-    UNHEALTH = 1
     #这一分钟就需要被清算
-    EXPIRED = 2
-    #和以前的状态没有变化
-    UNCHHANGE =3
+    EXPIRED = 1
 
 class AccountView():
-    def __init__(self, address, lock_amounts: AccountLockAmounts, borrow_amounts: AccountBorrowAmounts):
+    def __init__(self, address, lock_amounts: AccountLockAmounts, borrow_amounts: AccountBorrowAmounts, state):
         self.address = address
         self.lock_amounts = lock_amounts
         self.borrow_amounts = borrow_amounts
+        self.state = state
 
     @classmethod
     def empty(cls, address):
-        return cls(address, AccountLockAmounts(), AccountBorrowAmounts())
+        return cls(address, AccountLockAmounts(), AccountBorrowAmounts(), LiquidationState.HEALTH)
 
-    def add_borrow(self, sender, currency_code, amount, token_infos_now, token_info_a_minute_later):
+    def get_account_state(self):
+        return self.state
+
+    def set_account_state(self, state):
+        self.state = state
+
+    def add_borrow(self, sender, currency_code, amount, token_infos):
         if self.address == sender:
-            borrow_index = token_infos_now.get_token_info(currency_code).borrow_index
+            borrow_index = token_infos.get_token_info(currency_code).borrow_index
             self.borrow_amounts.add_amount(currency_code, amount, borrow_index)
-            return self._get_liquidator_state(token_infos_now, token_info_a_minute_later)
+            return self.get_liquidator_state(token_infos)
 
-        if self.lock_amounts.has_currency(currency_code) or self.borrow_amounts.has_currency(currency_code):
-            return self._get_liquidator_state(token_infos_now, token_info_a_minute_later)
+        elif self.lock_amounts.has_currency(currency_code):
+            return self.get_liquidator_state(token_infos)
 
-    def add_lock(self, sender, currency_code, amount, token_infos_now, token_info_in_range):
+    def add_lock(self, sender, currency_code, amount, token_infos):
         if self.address == sender:
-            self.lock_amounts.add_amount(currency_code, amount, token_infos_now.get_token_info(currency_code).exchange_rate)
-            return self._get_liquidator_state(token_infos_now, token_info_in_range)
+            self.lock_amounts.add_amount(currency_code, amount, token_infos.get_token_info(currency_code).exchange_rate)
+            return self.get_liquidator_state(token_infos)
 
-        if self.lock_amounts.has_currency(currency_code) or self.borrow_amounts.has_currency(currency_code):
-            return self._get_liquidator_state(token_infos_now, token_info_in_range)
+        elif self.lock_amounts.has_currency(currency_code):
+            return self.get_liquidator_state(token_infos)
 
-    def add_redeem(self, sender, currency_code, amount, token_infos_now, token_info_in_range):
+    def add_redeem(self, sender, currency_code, amount, token_infos):
         if self.address == sender:
-            self.lock_amounts.reduce_amount(currency_code, amount, token_infos_now.get_token_info(currency_code).exchange_rate)
-            return self._get_liquidator_state(token_infos_now, token_info_in_range)
+            self.lock_amounts.reduce_amount(currency_code, amount, token_infos.get_token_info(currency_code).exchange_rate)
+            return self.get_liquidator_state(token_infos)
 
-        if self.lock_amounts.has_currency(currency_code) or self.borrow_amounts.has_currency(currency_code):
-            return self._get_liquidator_state(token_infos_now, token_info_in_range)
+        elif self.lock_amounts.has_currency(currency_code):
+            return self.get_liquidator_state(token_infos)
 
-    def add_repay_borrow(self, sender, currency_code, amount, token_infos_now, token_info_in_range):
+    def add_repay_borrow(self, sender, currency_code, amount, token_infos):
         if self.address == sender:
-            self.borrow_amounts.reduce_amount(currency_code, amount, token_infos_now.get_token_info(currency_code).exchange_rate)
-            return self._get_liquidator_state(token_infos_now, token_info_in_range)
+            self.borrow_amounts.reduce_amount(currency_code, amount, token_infos.get_token_info(currency_code).exchange_rate)
+            return self.get_liquidator_state(token_infos)
+        elif self.lock_amounts.has_currency(currency_code):
+            return self.get_liquidator_state(token_infos)
+    
+    def add_liquidate_borrow_to_liquidator(self, sender, collateral_currency_code, collateral_amount, token_infos):
+        if self.address == sender:
+            self.lock_amounts.add_amount(collateral_currency_code, collateral_amount, token_infos.get_token_info(collateral_currency_code).exchange_rate)
+            return self.get_liquidator_state(token_infos)
 
-        if self.lock_amounts.has_currency(currency_code) or self.borrow_amounts.has_currency(currency_code):
-            return self._get_liquidator_state(token_infos_now, token_info_in_range)
-
-    def _get_liquidator_state(self, token_infos_now, token_info_a_minute_later: TokenInfos):
-        borrows = self.borrow_amounts.get_total_borrow_value(token_info_a_minute_later)
-        locks = self.lock_amounts.get_total_collateral_value(token_info_a_minute_later)
-        if borrows > locks:
-            nb = self.borrow_amounts.get_total_borrow_value(token_infos_now)
-            nl = self.lock_amounts.get_total_collateral_value(token_infos_now)
-            if nb >= nl:
-                return LiquidationState.EXPIRED
-            return LiquidationState.UNHEALTH
+    def add_liquidate_borrow_to_borrower(self, borrower, collateral_currency_code, collateral_amount,
+                                         currency_code, amount, token_infos):
+        if self.address == borrower:
+            self.lock_amounts.reduce_amount(collateral_currency_code, collateral_amount,
+                                            token_infos.get_token_info(collateral_currency_code).exchange_rate)
+            self.borrow_amounts.reduce_amount(currency_code, amount, token_infos.get_token_info(collateral_currency_code).exchange_rate)
+            return self.get_liquidator_state(token_infos)
+        elif self.lock_amounts.has_currency(currency_code):
+            return self.get_liquidator_state(token_infos)
+        
+    def get_liquidator_state(self, token_infos):
+        nb = self.borrow_amounts.get_total_borrow_value(token_infos)
+        nl = self.lock_amounts.get_total_collateral_value(token_infos)
+        if nb >= nl:
+            return LiquidationState.EXPIRED
         return LiquidationState.HEALTH
-
-
-from violas_client.banktypes.bytecode import CodeType
-from violas_client.vlstypes.view import TransactionView
-
 
 class AccountsView():
     def __init__(self):
         self.accounts = dict()
+        self.state_accounts = {
+            LiquidationState.HEALTH: set(list()),
+            LiquidationState.EXPIRED: set(list()),
+        }
 
-    def add_tx(self, tx: TransactionView, token_info_now, token_info_a_minute_later):
+    def to_json(self):
+        ret = dict()
+        for account in self.accounts.values():
+            ret[account.address] = {
+                "state": account.state,
+                "lock_amounts": account.lock_amounts,
+                "borrow_amounts": account.borrow_amounts,
+            }
+        return ret
+
+    def get_account_state(self, account_address):
+        return self.accounts.get(account_address).get_account_state()
+
+    def get_accounts_of_state(self, liquidation_state):
+        return self.state_accounts.get(liquidation_state)
+
+    def add_tx(self, tx: TransactionView, token_infos):
         if not tx.is_successful():
             return
-        if tx.get_code_type() == CodeType.PUBLISH:
-            return self.add_publish(tx)
-        if tx.get_code_type() == CodeType.BORROW:
-            return self.add_borrow(tx, token_info_now, token_info_a_minute_later)
-        if tx.get_code_type() == CodeType.LOCK:
-            return self.add_lock(tx, token_info_now, token_info_a_minute_later)
-        if tx.get_code_type() == CodeType.REDEEM:
-            return self.add_redeem(tx, token_info_now, token_info_a_minute_later)
-        if tx.get_code_type() == CodeType.REPAY_BORROW:
-            return self.add_borrow(tx, token_info_now, token_info_a_minute_later)
+        code_type = tx.get_code_type()
+        if code_type == CodeType.PUBLISH:
+            state = self.add_publish(tx)
+        elif code_type == CodeType.BORROW:
+            state =  self.add_borrow(tx, token_infos)
+        elif code_type == CodeType.LOCK:
+            state =  self.add_lock(tx, token_infos)
+        elif code_type == CodeType.REDEEM:
+            state =  self.add_redeem(tx, token_infos)
+        elif code_type == CodeType.REPAY_BORROW:
+            state = self.add_borrow(tx, token_infos)
+        return self.set_account_state(tx.get_sender(), state)
+
+    def set_account_state(self, account_address, state):
+        if state is not None and account_address is not None:
+            pro_state = self.get_account_state(account_address)
+            if pro_state is not None:
+                self.state_accounts.get(pro_state).remove(account_address)
+            self.accounts[account_address].set_account_state = state
+            self.state_accounts.get(state).add(account_address)
 
     def add_publish(self, tx):
         sender = tx.get_sender()
         self.accounts[sender] = AccountView.empty(sender)
 
-    def add_borrow(self, tx, token_infos_now, token_info_a_minute_later):
+    def add_borrow(self, tx, token_infos):
         sender = tx.get_sender()
         currency_code = tx.get_currency_cde()
         amount = tx.get_amount()
         for ac in self.accounts:
-            ac.add_borrow(sender, currency_code, amount, token_infos_now, token_info_a_minute_later)
+            ac.add_borrow(sender, currency_code, amount, token_infos)
 
-    def add_lock(self, tx, token_infos_now, token_info_a_minute_later):
+    def add_lock(self, tx, token_infos):
         for ac in self.accounts:
-            ac.add_lock(tx, token_infos_now, token_info_a_minute_later)
+            ac.add_lock(tx, token_infos)
 
-    def add_redeem(self, tx, token_infos_now, token_info_a_minute_later):
+    def add_redeem(self, tx, token_infos):
         for ac in self.accounts:
-            ac.add_redeem(tx, token_infos_now, token_info_a_minute_later)
+            ac.add_redeem(tx, token_infos)
 
-    def add_repay_borrow(self, tx):
-        pass
+    def add_repay_borrow(self, tx, token_infos):
+        for ac in self.accounts:
+            ac.add_repay_borrow(tx, token_infos)
+        
+    def add_liquidate_borrow(self, tx, token_infos):
+        liquidator = self.accounts.get(tx.get_sender())
+        borrower = self.accounts.get(tx.get_borrower())
+        liquidator.add_liquidate_borrow_to_liquidator(tx.get_sender(), tx.get_collateral_currency_code(), tx.get_collateral_amount(), token_infos)
+        borrower.add_liquidate_borrow_to_borrower(tx.get_borrower(), tx.get_collateral_currency_code(), tx.get_collateral_amount(),
+                                                  tx.get_currency_code(), tx.get_amount(),
+                                                  token_infos)
 
-    def get_token_infos(self):
-        pass
+    def update_liquidation_state(self, token_infos):
+        for pro_state, addr in self.state_accounts:
+            account = self.accounts.get(addr)
+            cur_state = account.get_liquidator_state(token_infos)
+            if cur_state != pro_state:
+                self.set_account_state(addr, cur_state)
+
+
+        
+
 

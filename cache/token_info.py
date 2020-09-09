@@ -131,17 +131,17 @@ class TokenInfos():
     def __init__(self):
         self.token_infos = dict()
 
-    def add_tx(self, tx: TransactionView, token_info_now, token_info_a_minute_later):
+    def add_tx(self, tx: TransactionView):
         if not tx.is_successful():
             return
         if tx.get_code_type() == CodeType.BORROW:
-            return self.add_borrow(tx, token_info_now, token_info_a_minute_later)
+            return self.add_borrow(tx)
         if tx.get_code_type() == CodeType.LOCK:
-            return self.add_lock(tx, token_info_now, token_info_a_minute_later)
+            return self.add_lock(tx)
         if tx.get_code_type() == CodeType.REDEEM:
-            return self.add_redeem(tx, token_info_now, token_info_a_minute_later)
+            return self.add_redeem(tx)
         if tx.get_code_type() == CodeType.REPAY_BORROW:
-            return self.add_borrow(tx, token_info_now, token_info_a_minute_later)
+            return self.add_borrow(tx)
 
     def get_token_info(self, currency_code) -> TokenInfo:
         return self.token_infos.get(currency_code)
@@ -151,22 +151,19 @@ class TokenInfos():
         token_info = self.get_token_info(currency_code)
         if token_info is not None:
             pass
-        token_info.accrue_interest()
+        token_info.add_borrow(tx)
 
     def add_lock(self, tx):
         currency_code = tx.get_currency_cde()
         token_info = self.get_token_info(currency_code)
         if token_info is not None:
-            pass
-        token_info.accrue_interest()
+            token_info.add_lock(tx)
 
     def add_redeem(self, tx):
         currency_code = tx.get_currency_cde()
         token_info = self.get_token_info(currency_code)
         if token_info is not None:
-            pass
-        token_info.accrue_interest()
-
+            token_info.accrue_interest()
 
     def add_register_token(self, tx):
         event = tx.get_bank_event()
@@ -188,3 +185,15 @@ class TokenInfos():
 
         self.token_infos[currency_code] = token_info
 
+    def get_token_infos_a_minute_later(self):
+        ret = []
+        minu_later_time = time.time()+60
+        for token_info in self.token_infos:
+           ret.append(token_info.get_forecast(minu_later_time))
+        return ret
+
+    def get_forecast_token_infos(self, t):
+        ret = []
+        for token_info in self.token_infos:
+            ret.append(token_info.get_forecast(t))
+        return ret
