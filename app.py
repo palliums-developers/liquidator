@@ -20,4 +20,4 @@ if __name__ == "__main__":
     update_state_thread.setDaemon(True)
     crawler_thread.start()
     update_state_thread.start()
-    app.run(host="localhost", port=4444, debug=False)
+    app.run(host="localhost", port=8000, debug=False)
