@@ -14,10 +14,10 @@ def index():
     return ret
 
 if __name__ == "__main__":
-    crawler_thread = CrawlerThread("bj_testnet")
+    crawler_thread = CrawlerThread("http://127.0.0.1:50001")
     crawler_thread.setDaemon(True)
     update_state_thread = UpdateStateThread()
     update_state_thread.setDaemon(True)
     crawler_thread.start()
     update_state_thread.start()
-    app.run(host="localhost", port=8000, debug=False)
+    app.run(host="localhost", port=9000, debug=False)

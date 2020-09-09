@@ -12,9 +12,9 @@ def get_cur_version():
     return start_version
 
 class CrawlerThread(Thread):
-    def __init__(self, network):
+    def __init__(self, url):
         super(CrawlerThread, self).__init__()
-        self.client = Client(network)
+        self.client = Client.new(url)
 
     def run(self):
         global start_version
@@ -29,7 +29,6 @@ class CrawlerThread(Thread):
                 print(e)
                 continue
             start_version += len(txs)
-            print(start_version)
             if liquidator_api.update_state is False and len(txs) < limit:
                 liquidator_api.update_state = True
 

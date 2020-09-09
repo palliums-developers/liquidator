@@ -2,6 +2,10 @@ import time
 import copy
 
 from .util import new_mantissa, safe_sub, mantissa_mul, mantissa_div
+from violas_client.banktypes.bytecode import CodeType
+from violas_client.vlstypes.view import TransactionView
+from violas_client.oracle_client.bytecodes import CodeType as OracleCodeType
+
 
 class TokenInfo():
     def __init__(self, **kwargs):
@@ -124,8 +128,8 @@ class TokenInfo():
         self.total_borrows = safe_sub(self.total_borrows, amount)
         self.contract_value += amount
 
-from violas_client.banktypes.bytecode import CodeType
-from violas_client.vlstypes.view import TransactionView
+    def add_update_price_from_oracle(self, tx):
+        pass
 
 class TokenInfos():
     def __init__(self):
@@ -142,6 +146,10 @@ class TokenInfos():
             return self.add_redeem(tx)
         if tx.get_code_type() == CodeType.REPAY_BORROW:
             return self.add_borrow(tx)
+        if tx.get_code_type() == CodeType.UPDATE_PRICE:
+            pass
+        if tx.get_code_type() == OracleCodeType.UPDATE_EXCHANGE_RATE:
+            pass
 
     def get_token_info(self, currency_code) -> TokenInfo:
         return self.token_infos.get(currency_code)
