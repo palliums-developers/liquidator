@@ -1,6 +1,5 @@
 from enum import IntEnum
 
-from .token_info import TokenInfos
 from .util import mantissa_div, mantissa_mul
 from violas_client.banktypes.bytecode import CodeType
 from violas_client.vlstypes.view import TransactionView
@@ -251,8 +250,3 @@ class AccountsView():
             cur_state = account.get_liquidator_state(token_infos)
             if cur_state != pro_state:
                 self.set_account_state(addr, cur_state)
-
-
-        
-
-

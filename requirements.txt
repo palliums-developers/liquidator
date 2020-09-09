@@ -47,5 +47,4 @@ six==1.14.0               # via grpcio, protobuf, pynacl
 toml==0.10.0              # via libra-core
 urllib3==1.25.8           # via requests
 bitarray==1.2.2
-psycopg2-binary==2.8.5  #via PostgreSQL
 flask
