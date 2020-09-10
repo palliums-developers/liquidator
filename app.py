@@ -10,6 +10,7 @@ def index():
     ret = {
         "current_version": get_cur_version(),
         "state": liquidator_api.accounts_view.to_json(),
+        "token_info": liquidator_api.token_infos.token_infos
     }
     return ret
 

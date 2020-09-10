@@ -10,11 +10,12 @@ from violas_client.oracle_client.bytecodes import CodeType as OracleCodeType
 class TokenInfo():
     def __init__(self, **kwargs):
         self.currency_code = kwargs.get("currency_code")
-        self.owner = kwargs.get("owner")
         self.total_supply = kwargs.get("total_supply")
         self.total_reserves = kwargs.get("total_reserves")
         self.total_borrows = kwargs.get("total_borrows")
         self.borrow_index = kwargs.get("borrow_index")
+
+        self.oracle_price = 0
         self.price = kwargs.get("price")
 
         self.collateral_factor = kwargs.get("collateral_factor")
@@ -23,9 +24,6 @@ class TokenInfo():
         self.rate_jump_multiplier = kwargs.get("rate_jump_multiplier")
         self.rate_kink = kwargs.get("rate_kink")
         self.last_minute = kwargs.get("last_minute")
-        self.data = kwargs.get("data")
-        self.bulletin_first = kwargs.get("bulletin_first")
-        self.bulletins = kwargs.get("bulletins")
 
         # resource struct T
         self.index = kwargs.get("index")
@@ -104,104 +102,29 @@ class TokenInfo():
         return new_mantissa(self.contract_value + self.total_borrows - self.total_reserves, self.total_supply)
 
     def add_lock(self, tx):
-        self.accrue_interest()
         amount = tx.get_amount()
         self.contract_value += amount
         tokens = mantissa_div(amount, self.exchange_rate)
         self.total_supply += self.total_supply + tokens
 
     def add_borrow(self, tx):
-        self.accrue_interest()
         amount = tx.get_amount()
         self.total_borrows += amount
         self.contract_value -= amount
 
     def add_redeem(self, tx):
-        self.accrue_interest()
         amount = tx.get_amount()
         self.total_supply = safe_sub(self.total_supply, amount)
         self.contract_value -= amount
 
     def add_repay_borrow(self, tx):
-        self.accrue_interest()
         amount = tx.get_amount()
         self.total_borrows = safe_sub(self.total_borrows, amount)
         self.contract_value += amount
 
-    def add_update_price_from_oracle(self, tx):
+    def add_update_price_from_oracle(self):
         pass
 
-class TokenInfos():
-    def __init__(self):
-        self.token_infos = dict()
+    def add_update_exchange_rate(self, price):
+        self.oracle_price = price
 
-    def add_tx(self, tx: TransactionView):
-        if not tx.is_successful():
-            return
-        if tx.get_code_type() == CodeType.BORROW:
-            return self.add_borrow(tx)
-        if tx.get_code_type() == CodeType.LOCK:
-            return self.add_lock(tx)
-        if tx.get_code_type() == CodeType.REDEEM:
-            return self.add_redeem(tx)
-        if tx.get_code_type() == CodeType.REPAY_BORROW:
-            return self.add_borrow(tx)
-        if tx.get_code_type() == CodeType.UPDATE_PRICE:
-            pass
-        if tx.get_code_type() == OracleCodeType.UPDATE_EXCHANGE_RATE:
-            pass
-
-    def get_token_info(self, currency_code) -> TokenInfo:
-        return self.token_infos.get(currency_code)
-
-    def add_borrow(self, tx):
-        currency_code = tx.get_currency_cde()
-        token_info = self.get_token_info(currency_code)
-        if token_info is not None:
-            pass
-        token_info.add_borrow(tx)
-
-    def add_lock(self, tx):
-        currency_code = tx.get_currency_cde()
-        token_info = self.get_token_info(currency_code)
-        if token_info is not None:
-            token_info.add_lock(tx)
-
-    def add_redeem(self, tx):
-        currency_code = tx.get_currency_cde()
-        token_info = self.get_token_info(currency_code)
-        if token_info is not None:
-            token_info.accrue_interest()
-
-    def add_register_token(self, tx):
-        event = tx.get_bank_event()
-        currency_code = event.currency_code
-        collateral_factor = event.collateral_factor
-        base_rate = event.base_rate
-        rate_multiplier = event.rate_multiplier
-        rate_jump_multiplier = event.rate_jump_multiplier
-        rate_kink = event.rate_kink
-        token_info = TokenInfo.empty(currency_code=currency_code,
-                                     owner=tx.get_sender(),
-                                     collateral_factor=collateral_factor,
-                                     base_rate=base_rate,
-                                     rate_multiplier=rate_multiplier,
-                                     rate_jump_multiplier=rate_jump_multiplier,
-                                     rate_kink=rate_kink,
-                                     bulletin_first="",
-                                     bulletins="")
-
-        self.token_infos[currency_code] = token_info
-
-    def get_token_infos_a_minute_later(self):
-        ret = []
-        minu_later_time = time.time()+60
-        for token_info in self.token_infos:
-           ret.append(token_info.get_forecast(minu_later_time))
-        return ret
-
-    def get_forecast_token_infos(self, t):
-        ret = []
-        for token_info in self.token_infos:
-            ret.append(token_info.get_forecast(t))
-        return ret
