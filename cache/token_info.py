@@ -2,9 +2,6 @@ import time
 import copy
 
 from .util import new_mantissa, safe_sub, mantissa_mul, mantissa_div
-from violas_client.banktypes.bytecode import CodeType
-from violas_client.vlstypes.view import TransactionView
-from violas_client.oracle_client.bytecodes import CodeType as OracleCodeType
 
 
 class TokenInfo():
@@ -26,16 +23,17 @@ class TokenInfo():
         self.last_minute = kwargs.get("last_minute")
 
         # resource struct T
-        self.index = kwargs.get("index")
         self.contract_value = kwargs.get("contract_value")
 
         #更新
         self.exchange_rate = self.update_exchange_rate()
 
+    def to_json(self):
+        return self.__dict__
+
     @classmethod
     def empty(cls, **kwargs):
         return cls(currency_code=kwargs.get("currency_code"),
-                   owner = kwargs.get("owner"),
                    total_supply=0,
                    total_reserves=0,
                    total_borrows=0,
@@ -46,10 +44,8 @@ class TokenInfo():
                    rate_multiplier = kwargs.get("rate_multiplier"),
                    rate_jump_multiplier = kwargs.get("rate_jump_multiplier"),
                    rate_kink = kwargs.get("rate_kink"),
-                   last_minute = kwargs.get("last_minute"),
-                   data = kwargs.get("data"),
-                   bulletin_first = "",
-                   bulletins = "")
+                   last_minute = 0,
+                   contract_value = 0 )
 
     def accrue_interest(self):
         borrow_rate = self.get_borrow_rate()
@@ -68,12 +64,12 @@ class TokenInfo():
         self.exchange_rate = self.update_exchange_rate()
         return self
 
-    def get_forecast(self, time_sec):
+    def get_forecast(self, time_minute):
         ret = copy.deepcopy(self)
         borrow_rate = ret.get_borrow_rate()
-        minute = time_sec // 60
+        minute = time_minute
         cnt = safe_sub(minute, ret.last_minute)
-        if cnt == 0:
+        if cnt <= 0:
             return ret
         borrow_rate = borrow_rate * cnt
         ret.last_minute = minute
@@ -121,10 +117,4 @@ class TokenInfo():
         amount = tx.get_amount()
         self.total_borrows = safe_sub(self.total_borrows, amount)
         self.contract_value += amount
-
-    def add_update_price_from_oracle(self):
-        pass
-
-    def add_update_exchange_rate(self, price):
-        self.oracle_price = price
 

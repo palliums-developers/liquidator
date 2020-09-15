@@ -40,9 +40,8 @@ class AccountLockAmounts():
         return value
 
 
-
 class AccountBorrowAmounts():
-    def __init__(self, amounts):
+    def __init__(self, **kwargs):
         '''
         {
             currency_code:(amount, interest_index),
@@ -50,7 +49,7 @@ class AccountBorrowAmounts():
         }
         :param amounts:
         '''
-        self.amounts = amounts
+        self.amounts = kwargs
 
     def add_amount(self, currency_code, amount, interest_index):
         old_amount = self.borrow_balance(currency_code, interest_index)
@@ -91,6 +90,15 @@ class AccountView():
         self.lock_amounts = AccountLockAmounts()
         self.borrow_amounts = AccountBorrowAmounts()
         self.health = sys.maxsize
+
+    def to_json(self):
+
+        return {
+            "address": self.address,
+            "lock_amounts": self.lock_amounts.amounts,
+            "borrow_amounts": self.borrow_amounts.amounts,
+            "health": self.health
+        }
 
     def add_borrow(self, currency_code, amount, token_infos):
         borrow_index = token_infos.get_token_info(currency_code).borrow_index
@@ -149,6 +157,10 @@ class AccountView():
         return self.lock_amounts.get_total_collateral_value(token_infos)
 
     def update_health_state(self, token_infos):
-        nb = self.borrow_amounts.get_total_borrow_value(token_infos)
-        nl = self.lock_amounts.get_total_collateral_value(token_infos)
-        self.health = nb / nl
+        if self.has_borrow_any():
+            nb = self.borrow_amounts.get_total_borrow_value(token_infos)
+            nl = self.lock_amounts.get_total_collateral_value(token_infos)
+            self.health = nb / nl
+            return self.health
+        return sys.maxsize
+
