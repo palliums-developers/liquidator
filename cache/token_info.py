@@ -59,7 +59,7 @@ class TokenInfo():
         self.total_borrows = self.total_borrows + interest_accumulated
         reserve_factor = new_mantissa(1, 2)
         self.total_reserves = self.total_reserves +mantissa_mul(interest_accumulated, reserve_factor)
-        self.interest_index = self.interest_index + mantissa_mul(self.interest_index, borrow_rate)
+        self.borrow_index = self.borrow_index + mantissa_mul(self.borrow_index, borrow_rate)
 
         self.exchange_rate = self.update_exchange_rate()
         return self
@@ -77,7 +77,7 @@ class TokenInfo():
         ret.total_borrows = ret.total_borrows + interest_accumulated
         reserve_factor = new_mantissa(1, 2)
         ret.total_reserves = ret.total_reserves + mantissa_mul(interest_accumulated, reserve_factor)
-        ret.interest_index = ret.interest_index + mantissa_mul(ret.interest_index, borrow_rate)
+        ret.borrow_index = ret.borrow_index + mantissa_mul(ret.borrow_index, borrow_rate)
         return ret
 
     def get_borrow_rate(self):

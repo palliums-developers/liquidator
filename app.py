@@ -37,4 +37,4 @@ if __name__ == "__main__":
     #         update_state_thread.setDaemon(True)
     #         update_state_thread.start()
     #         break
-    app.run(host="0.0.0.0", port=9000, debug=False)
+    app.run(host="0.0.0.0", port=9000, debug=True)
