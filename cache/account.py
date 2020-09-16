@@ -29,13 +29,13 @@ class AccountLockAmounts():
     def get_collateral_value(amount, exchange_rate, price, collateral_factor):
         return mantissa_mul(mantissa_mul(mantissa_mul(amount, exchange_rate), collateral_factor), price)
 
-    def get_total_collateral_value(self, **token_infos):
+    def get_total_collateral_value(self, token_infos):
         value = 0
         for currency, amount in self.amounts.items():
             info = token_infos.get(currency)
-            collateral_factor = info.get("collateral_factor")
-            exchange_rate = info.get("exchange_rate")
-            price = info.get("price")
+            collateral_factor = info.collateral_factor
+            exchange_rate = info.exchange_rate
+            price = info.price
             value += self.get_collateral_value(amount, exchange_rate, price, collateral_factor)
         return value
 
@@ -101,31 +101,31 @@ class AccountView():
         }
 
     def add_borrow(self, currency_code, amount, token_infos):
-        borrow_index = token_infos.get_token_info(currency_code).borrow_index
+        borrow_index = token_infos.get(currency_code).borrow_index
         self.borrow_amounts.add_amount(currency_code, amount, borrow_index)
         self.update_health_state(token_infos)
         return self.health
 
     def add_lock(self, currency_code, amount, token_infos):
-        exchange_rate = token_infos.get_token_info(currency_code).exchange_rate
+        exchange_rate = token_infos.get(currency_code).exchange_rate
         self.lock_amounts.add_amount(currency_code, amount, exchange_rate)
         self.update_health_state(token_infos)
         return self.health
 
     def add_redeem(self, currency_code, amount, token_infos):
-        exchange_rate = token_infos.get_token_info(currency_code).exchange_rate
+        exchange_rate = token_infos.get(currency_code).exchange_rate
         self.lock_amounts.reduce_amount(currency_code, amount, exchange_rate)
         self.update_health_state(token_infos)
         return self.health
 
     def add_repay_borrow(self, currency_code, amount, token_infos):
-        exchange_rate = token_infos.get_token_info(currency_code).exchange_rate
+        exchange_rate = token_infos.get(currency_code).exchange_rate
         self.borrow_amounts.reduce_amount(currency_code, amount, exchange_rate)
         self.update_health_state(token_infos)
         return self.health
     
     def add_liquidate_borrow_to_liquidator(self, collateral_currency_code, collateral_amount, token_infos):
-        exchange_rate = token_infos.get_token_info(collateral_currency_code).exchange_rate
+        exchange_rate = token_infos.get(collateral_currency_code).exchange_rate
         self.lock_amounts.add_amount(collateral_currency_code, collateral_amount, exchange_rate)
         self.update_health_state(token_infos)
         return self.health
@@ -133,13 +133,16 @@ class AccountView():
     def add_liquidate_borrow_to_borrower(self, collateral_currency_code, collateral_amount,
                                          currency_code, amount, token_infos):
         self.lock_amounts.reduce_amount(collateral_currency_code, collateral_amount,
-                                        token_infos.get_token_info(collateral_currency_code).exchange_rate)
-        self.borrow_amounts.reduce_amount(currency_code, amount, token_infos.get_token_info(collateral_currency_code).exchange_rate)
+                                        token_infos.get(collateral_currency_code).exchange_rate)
+        self.borrow_amounts.reduce_amount(currency_code, amount, token_infos.get(collateral_currency_code).exchange_rate)
         self.update_health_state(token_infos)
         return self.health
 
     def has_borrow_any(self):
-        return len(self.borrow_amounts.amounts)
+        for currency, amount in self.borrow_amounts.amounts.items():
+            if amount[0] > 0:
+                return True
+        return False
 
     def has_borrow(self, currency_code):
         return self.borrow_amounts.amounts.get(currency_code) is not None
@@ -158,9 +161,8 @@ class AccountView():
 
     def update_health_state(self, token_infos):
         if self.has_borrow_any():
-            nb = self.borrow_amounts.get_total_borrow_value(token_infos)
-            nl = self.lock_amounts.get_total_collateral_value(token_infos)
-            self.health = nb / nl
+            borrow_value = self.borrow_amounts.get_total_borrow_value(token_infos)
+            collateral_value = self.lock_amounts.get_total_collateral_value(token_infos)
+            self.health = collateral_value / borrow_value
             return self.health
         return sys.maxsize
-

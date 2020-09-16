@@ -118,3 +118,6 @@ class TokenInfo():
         self.total_borrows = safe_sub(self.total_borrows, amount)
         self.contract_value += amount
 
+    def add_liquidate_borrow(self, tx):
+        self.add_repay_borrow(tx)
+
