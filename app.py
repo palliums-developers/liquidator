@@ -1,10 +1,7 @@
-import time
-from flask import request
 from queue import Queue
 from flask import Flask
-from config import config
-from chain_scanner import ScannerThread, get_cur_version
-from regular_checker import CheckerThread
+from conf.config import update_config, read_config
+from producer.chain_scanner import ScannerThread, URL
 from cache.api import liquidator_api
 
 app = Flask(__name__)
@@ -12,22 +9,23 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     ret = {
-        "current_version": get_cur_version(),
-        "url": config["url"],
-        "info": liquidator_api.get_info()
+        "current_version": ScannerThread.VERSION,
+        "url": URL,
+        "info": liquidator_api.to_json()
     }
     return ret
 
 @app.route('/version')
 def version():
     ret = {
-        "current_version": get_cur_version(),
+        "current_version": ScannerThread.VERSION,
     }
     return ret
 
 if __name__ == "__main__":
+    config = read_config()
     unhealth_queue = Queue(100)
-    scanner_thread = ScannerThread(config["url"], unhealth_queue)
+    scanner_thread = ScannerThread(unhealth_queue, config)
     scanner_thread.setDaemon(True)
     scanner_thread.start()
     # while True:

@@ -12,7 +12,7 @@ class Account(Base):
             account varchar PRIMARY KEY ,
             lock_amounts json ,
             borrow_amounts json ,
-            expiration_time integer ,
+            health float ,
         )'''
         self.common(sql)
 

@@ -3,7 +3,6 @@ import copy
 
 from .util import new_mantissa, safe_sub, mantissa_mul, mantissa_div
 
-
 class TokenInfo():
     def __init__(self, **kwargs):
         self.currency_code = kwargs.get("currency_code")
@@ -32,6 +31,10 @@ class TokenInfo():
         return self.__dict__
 
     @classmethod
+    def from_json(cls, json_value):
+        return cls(**json_value)
+
+    @classmethod
     def empty(cls, **kwargs):
         return cls(currency_code=kwargs.get("currency_code"),
                    total_supply=0,
@@ -44,21 +47,23 @@ class TokenInfo():
                    rate_multiplier = kwargs.get("rate_multiplier"),
                    rate_jump_multiplier = kwargs.get("rate_jump_multiplier"),
                    rate_kink = kwargs.get("rate_kink"),
-                   last_minute = 0,
+                   last_minute = kwargs.get("last_minute"),
                    contract_value = 0 )
 
-    def accrue_interest(self):
+    def accrue_interest(self, timestamp):
         borrow_rate = self.get_borrow_rate()
-        minute = int(time.time() + 10) // 60
+        minute = int(timestamp) // 60
         cnt = safe_sub(minute, self.last_minute)
-        if cnt == 0:
+        if cnt <= 0:
             return self
+        # print("borrow_rate",borrow_rate, cnt, minute, self.last_minute)
         borrow_rate = borrow_rate *cnt
         self.last_minute = minute
         interest_accumulated = mantissa_mul(self.total_borrows, borrow_rate)
         self.total_borrows = self.total_borrows + interest_accumulated
-        reserve_factor = new_mantissa(1, 2)
+        reserve_factor = new_mantissa(1, 20)
         self.total_reserves = self.total_reserves +mantissa_mul(interest_accumulated, reserve_factor)
+        # print("borrow_index", self.borrow_index, borrow_rate/(2**32))
         self.borrow_index = self.borrow_index + mantissa_mul(self.borrow_index, borrow_rate)
 
         self.exchange_rate = self.update_exchange_rate()
@@ -75,7 +80,7 @@ class TokenInfo():
         ret.last_minute = minute
         interest_accumulated = mantissa_mul(ret.total_borrows, borrow_rate)
         ret.total_borrows = ret.total_borrows + interest_accumulated
-        reserve_factor = new_mantissa(1, 2)
+        reserve_factor = new_mantissa(1, 20)
         ret.total_reserves = ret.total_reserves + mantissa_mul(interest_accumulated, reserve_factor)
         ret.borrow_index = ret.borrow_index + mantissa_mul(ret.borrow_index, borrow_rate)
         return ret
@@ -120,4 +125,3 @@ class TokenInfo():
 
     def add_liquidate_borrow(self, tx):
         self.add_repay_borrow(tx)
-

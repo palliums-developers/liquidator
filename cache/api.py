@@ -1,5 +1,6 @@
 from .token_info import TokenInfo
 from .account import AccountView
+from conf.config import update_config
 from violas_client.banktypes.bytecode import CodeType as BankCodeType
 from violas_client.vlstypes.view import TransactionView
 from violas_client.oracle_client.bytecodes import CodeType as OracleCodType
@@ -9,11 +10,22 @@ class LiquidatorAPI():
         self.accounts = dict()
         self.token_infos = dict()
 
-    def get_info(self):
+    def to_json(self):
         return {
             "accounts": { addr: account.to_json() for addr, account in self.accounts.items()},
             "token_infos": {currency: token.to_json() for currency, token in self.token_infos.items()},
         }
+
+    @classmethod
+    def from_json(cls, json_value):
+        ret = cls()
+        accounts = json_value.get("accounts", dict())
+        for addr, account in accounts.items():
+            ret.accounts[addr] = AccountView.from_json(addr, account)
+        token_infos = json_value.get("token_infos", dict())
+        for currency, token_info in token_infos.items():
+            ret.token_infos[currency] = TokenInfo.from_json(token_info)
+        return ret
 
     def get_token_info(self, currency_code) -> TokenInfo:
         return self.token_infos.get(currency_code)
@@ -34,23 +46,23 @@ class LiquidatorAPI():
         '''
         return filter(lambda account: account.has_borrow_any() and account.has_lock(currency_code), self.accounts.values())
 
-    def add_tx(self, tx: TransactionView):
+    def add_tx(self, tx: TransactionView, timestamp):
         if not tx.is_successful():
             return
         elif tx.get_code_type() == BankCodeType.REGISTER_LIBRA_TOKEN:
-            return self.add_register_libra_token(tx)
+            return self.add_register_libra_token(tx, timestamp)
         elif tx.get_code_type() == BankCodeType.PUBLISH:
             return self.add_publish(tx)
-        elif tx.get_code_type() == BankCodeType.BORROW2:
-            return self.add_borrow(tx)
-        elif tx.get_code_type() == BankCodeType.LOCK2:
-            return self.add_lock(tx)
-        elif tx.get_code_type() == BankCodeType.REDEEM2:
-            return self.add_redeem(tx)
-        elif tx.get_code_type() == BankCodeType.REPAY_BORROW2:
-            return self.add_repay_borrow(tx)
+        elif tx.get_code_type() in (BankCodeType.BORROW2, BankCodeType.BORROW):
+            return self.add_borrow(tx, timestamp)
+        elif tx.get_code_type() in (BankCodeType.LOCK2, BankCodeType.LOCK, BankCodeType.LOCK_INDEX):
+            return self.add_lock(tx, timestamp)
+        elif tx.get_code_type() in (BankCodeType.REDEEM2, BankCodeType.REDEEM):
+            return self.add_redeem(tx, timestamp)
+        elif tx.get_code_type() in (BankCodeType.REPAY_BORROW, BankCodeType.REPAY_BORROW2, BankCodeType.REPAY_BORROW_INDEX):
+            return self.add_repay_borrow(tx, timestamp)
         elif tx.get_code_type() == BankCodeType.LIQUIDATE_BORROW:
-            return self.add_liquidate_borrow(tx)
+            return self.add_liquidate_borrow(tx, timestamp)
         elif tx.get_code_type() == BankCodeType.UPDATE_COLLATERAL_FACTOR:
             return self.update_collateral_factor(tx)
         elif tx.get_code_type() == BankCodeType.UPDATE_PRICE_FROM_ORACLE:
@@ -68,7 +80,7 @@ class LiquidatorAPI():
         '''
         self.accounts[tx.get_sender()] = AccountView(tx.get_sender())
 
-    def add_register_libra_token(self, tx):
+    def add_register_libra_token(self, tx, timestamp):
         events = tx.get_bank_type_events(BankCodeType.REGISTER_LIBRA_TOKEN)
         if len(events) > 0:
             event = events[0].get_bank_event()
@@ -79,9 +91,9 @@ class LiquidatorAPI():
                 rate_multiplier=event.rate_multiplier,
                 rate_jump_multiplier=event.rate_jump_multiplier,
                 rate_kink=event.rate_kink,
-                last_minute=0)
+                last_minute=timestamp)
 
-    def add_borrow(self, tx):
+    def add_borrow(self, tx, timestamp):
         '''
         1. 更新oracle价格
         2. accrue_interest
@@ -95,7 +107,7 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
-        token_info.accrue_interest()
+        token_info.accrue_interest(timestamp)
         token_info.add_redeem(tx)
         account = self.get_account(tx.get_sender())
         if account.add_borrow(currency_code, tx.get_amount(), self.token_infos) < 1:
@@ -109,7 +121,7 @@ class LiquidatorAPI():
                     ret.append(account.address)
         return ret
 
-    def add_lock(self, tx):
+    def add_lock(self, tx, timestamp):
         '''
         1. 更新oracle价格
         2. accrue_interest
@@ -124,7 +136,7 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
-        token_info.accrue_interest()
+        token_info.accrue_interest(timestamp)
         account = self.get_account(tx.get_sender())
         if account.add_lock(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
@@ -139,7 +151,7 @@ class LiquidatorAPI():
                     ret.append(account.address)
         return ret
 
-    def add_redeem(self, tx):
+    def add_redeem(self, tx, timestamp):
         '''
         1. 更新oralce价格
         2. accrue_interest
@@ -154,7 +166,7 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
-        token_info.accrue_interest()
+        token_info.accrue_interest(timestamp)
         account = self.get_account(tx.get_sender())
         if account.add_redeem(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
@@ -169,7 +181,7 @@ class LiquidatorAPI():
         return ret
 
 
-    def add_repay_borrow(self, tx):
+    def add_repay_borrow(self, tx, timestamp):
         '''
         1. 更新oralce价格
         2. accrue_interest
@@ -183,7 +195,7 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
-        token_info.accrue_interest()
+        token_info.accrue_interest(timestamp)
         account = self.get_account(tx.get_sender())
         if account.add_repay_borrow(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
@@ -197,7 +209,7 @@ class LiquidatorAPI():
                     ret.append(account.address)
         return ret
 
-    def add_liquidate_borrow(self, tx: TransactionView):
+    def add_liquidate_borrow(self, tx: TransactionView, timestamp):
         '''
         1. 质押币总额不变
         2. 借款纵隔
@@ -215,7 +227,7 @@ class LiquidatorAPI():
         if collateral_price != collateral_oracle_price:
             self.set_price(collateral_currency, collateral_oracle_price)
 
-        token_info.accrue_interest()
+        token_info.accrue_interest(timestamp)
         token_info.add_liquidate_borrow(tx)
         account = self.get_account(tx.get_sender())
         borrower = self.get_account(tx.get_borrower())
@@ -332,6 +344,12 @@ class LiquidatorAPI():
         if token_info:
             token_info.oracle_price = price
 
+    def update_config(self, version):
+        json_value = self.to_json()
+        json_value["version"] = version
+        update_config(json_value)
 
 
-liquidator_api = LiquidatorAPI()
+from conf.config import config
+
+liquidator_api = LiquidatorAPI.from_json(config)

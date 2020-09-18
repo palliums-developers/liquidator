@@ -92,13 +92,21 @@ class AccountView():
         self.health = sys.maxsize
 
     def to_json(self):
-
         return {
             "address": self.address,
             "lock_amounts": self.lock_amounts.amounts,
             "borrow_amounts": self.borrow_amounts.amounts,
             "health": self.health
         }
+
+    @classmethod
+    def from_json(cls, addr, json_value):
+        ret = cls(addr)
+        lock_amounts = json_value.get("lock_amounts", dict())
+        borrow_amounts = json_value.get("borrow_amounts", dict())
+        ret.lock_amounts = AccountLockAmounts(**lock_amounts)
+        ret.borrow_amounts = AccountBorrowAmounts(**borrow_amounts)
+        return ret
 
     def add_borrow(self, currency_code, amount, token_infos):
         borrow_index = token_infos.get(currency_code).borrow_index
