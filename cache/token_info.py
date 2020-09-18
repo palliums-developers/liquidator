@@ -47,7 +47,7 @@ class TokenInfo():
                    rate_multiplier = kwargs.get("rate_multiplier"),
                    rate_jump_multiplier = kwargs.get("rate_jump_multiplier"),
                    rate_kink = kwargs.get("rate_kink"),
-                   last_minute = kwargs.get("last_minute"),
+                   last_minute = kwargs.get("last_minute") // 60,
                    contract_value = 0 )
 
     def accrue_interest(self, timestamp):
