@@ -104,7 +104,7 @@ class TokenInfo():
         amount = tx.get_amount()
         self.contract_value += amount
         tokens = mantissa_div(amount, self.exchange_rate)
-        self.total_supply += self.total_supply + tokens
+        self.total_supply += tokens
 
     def add_borrow(self, tx):
         amount = tx.get_amount()
