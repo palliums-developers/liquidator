@@ -87,9 +87,9 @@ class LiquidatorAPI():
             self.token_infos[event.currency_code] = TokenInfo.empty(
                 currency_code=event.currency_code,
                 collateral_factor=event.collateral_factor,
-                base_rate=event.base_rate,
-                rate_multiplier=event.rate_multiplier,
-                rate_jump_multiplier=event.rate_jump_multiplier,
+                base_rate=event.base_rate//(365*24*60),
+                rate_multiplier=event.rate_multiplier//(365*24*60),
+                rate_jump_multiplier=event.rate_jump_multiplier//(365*24*60),
                 rate_kink=event.rate_kink,
                 last_minute=timestamp)
 

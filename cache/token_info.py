@@ -56,16 +56,13 @@ class TokenInfo():
         cnt = safe_sub(minute, self.last_minute)
         if cnt <= 0:
             return self
-        # print("borrow_rate",borrow_rate, cnt, minute, self.last_minute)
         borrow_rate = borrow_rate *cnt
         self.last_minute = minute
         interest_accumulated = mantissa_mul(self.total_borrows, borrow_rate)
         self.total_borrows = self.total_borrows + interest_accumulated
         reserve_factor = new_mantissa(1, 20)
         self.total_reserves = self.total_reserves +mantissa_mul(interest_accumulated, reserve_factor)
-        # print("borrow_index", self.borrow_index, borrow_rate/(2**32))
         self.borrow_index = self.borrow_index + mantissa_mul(self.borrow_index, borrow_rate)
-
         self.exchange_rate = self.update_exchange_rate()
         return self
 
@@ -90,8 +87,9 @@ class TokenInfo():
             util = 0
         else:
             util = new_mantissa(self.total_borrows, self.total_borrows + safe_sub(self.contract_value, self.total_reserves))
-
+        print("util", util, self.total_borrows, self.total_borrows + safe_sub(self.contract_value, self.total_reserves))
         if util < self.rate_kink:
+            print((mantissa_mul(self.rate_multiplier, util) + self.base_rate) / 2**32)
             return mantissa_mul(self.rate_multiplier, util) + self.base_rate
         normal_rate = mantissa_mul(self.rate_multiplier, self.rate_kink) + self.base_rate
         excess_util = util - self.rate_kink
