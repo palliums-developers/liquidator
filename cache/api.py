@@ -307,9 +307,9 @@ class LiquidatorAPI():
         if len(events) > 0:
             event = events[0].get_bank_event()
             token_info = self.token_infos[event.currency_code]
-            token_info.base_rate = event.base_rate
-            token_info.rate_multiplier = event.rate_multiplier
-            token_info.rate_jump_multiplier = event.rate_jump_multiplier
+            token_info.base_rate = event.base_rate //(365*24*60)
+            token_info.rate_multiplier = event.rate_multiplier // (365*24*60)
+            token_info.rate_jump_multiplier = event.rate_jump_multiplier // (365*24*60)
             token_info.rate_kink = event.rate_kink
 
     def check_borrow_index(self, time_minute):
