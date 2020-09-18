@@ -87,9 +87,7 @@ class TokenInfo():
             util = 0
         else:
             util = new_mantissa(self.total_borrows, self.total_borrows + safe_sub(self.contract_value, self.total_reserves))
-        print("util", util, self.total_borrows, self.total_borrows + safe_sub(self.contract_value, self.total_reserves))
         if util < self.rate_kink:
-            print((mantissa_mul(self.rate_multiplier, util) + self.base_rate) / 2**32)
             return mantissa_mul(self.rate_multiplier, util) + self.base_rate
         normal_rate = mantissa_mul(self.rate_multiplier, self.rate_kink) + self.base_rate
         excess_util = util - self.rate_kink

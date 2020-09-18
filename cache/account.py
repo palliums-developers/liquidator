@@ -15,11 +15,13 @@ class AccountLockAmounts():
     def add_amount(self, currency_code, amount, exchange_rate):
         amount = mantissa_div(amount, exchange_rate)
         old_amount = self.amounts.get(currency_code, 0)
+        print("add_amount", old_amount, amount, exchange_rate)
         self.amounts[currency_code] = old_amount+amount
 
     def reduce_amount(self, currency_code, amount, exchange_rate):
         amount = mantissa_div(amount, exchange_rate)
         old_amount = self.amounts.get(currency_code)
+        print("reduce_amount", old_amount, amount, exchange_rate)
         self.amounts[currency_code] = old_amount-amount
 
     def has_currency(self, currency_code):
