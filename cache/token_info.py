@@ -48,7 +48,7 @@ class TokenInfo():
                    rate_jump_multiplier = kwargs.get("rate_jump_multiplier"),
                    rate_kink = kwargs.get("rate_kink"),
                    last_minute = kwargs.get("last_minute") // 60,
-                   contract_value = 0 )
+                   contract_value = 0)
 
     def accrue_interest(self, timestamp):
         borrow_rate = self.get_borrow_rate()
@@ -56,6 +56,7 @@ class TokenInfo():
         cnt = safe_sub(minute, self.last_minute)
         if cnt <= 0:
             return self
+        print("timestamp",timestamp, cnt)
         borrow_rate = borrow_rate *cnt
         self.last_minute = minute
         interest_accumulated = mantissa_mul(self.total_borrows, borrow_rate)
@@ -96,6 +97,7 @@ class TokenInfo():
     def update_exchange_rate(self):
         if self.total_supply == 0:
             return new_mantissa(1, 100)
+        print("update", self.contract_value, self.total_borrows, self.total_reserves, self.total_supply)
         return new_mantissa(self.contract_value + self.total_borrows - self.total_reserves, self.total_supply)
 
     def add_lock(self, tx):
