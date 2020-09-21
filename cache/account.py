@@ -129,8 +129,8 @@ class AccountView():
         return self.health
 
     def add_repay_borrow(self, currency_code, amount, token_infos):
-        exchange_rate = token_infos.get(currency_code).exchange_rate
-        self.borrow_amounts.reduce_amount(currency_code, amount, exchange_rate)
+        borrow_index = token_infos.get(currency_code).borrow_index
+        self.borrow_amounts.reduce_amount(currency_code, amount, borrow_index)
         self.update_health_state(token_infos)
         return self.health
     

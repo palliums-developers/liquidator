@@ -64,7 +64,6 @@ class TokenInfo():
         reserve_factor = new_mantissa(1, 20)
         self.total_reserves = self.total_reserves +mantissa_mul(interest_accumulated, reserve_factor)
         self.borrow_index = self.borrow_index + mantissa_mul(self.borrow_index, borrow_rate)
-        self.exchange_rate = self.update_exchange_rate()
         return self
 
     def get_forecast(self, time_minute):

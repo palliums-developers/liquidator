@@ -140,6 +140,7 @@ class LiquidatorAPI():
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
         token_info.accrue_interest(timestamp)
+        token_info.update_exchange_rate()
         account = self.get_account(tx.get_sender())
         if account.add_lock(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
@@ -170,6 +171,7 @@ class LiquidatorAPI():
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
         token_info.accrue_interest(timestamp)
+        token_info.update_exchange_rate()
         account = self.get_account(tx.get_sender())
         if account.add_redeem(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
