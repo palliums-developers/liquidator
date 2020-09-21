@@ -2,6 +2,7 @@ from .token_info import TokenInfo
 from .account import AccountView
 from conf.config import update_config
 from violas_client.banktypes.bytecode import CodeType as BankCodeType
+from violas_client.lbrtypes.bytecode import CodeType
 from violas_client.vlstypes.view import TransactionView
 from violas_client.oracle_client.bytecodes import CodeType as OracleCodType
 
@@ -47,6 +48,8 @@ class LiquidatorAPI():
         return filter(lambda account: account.has_borrow_any() and account.has_lock(currency_code), self.accounts.values())
 
     def add_tx(self, tx: TransactionView, timestamp):
+        if tx.get_code_type() != CodeType.BLOCK_METADATA:
+            print(tx.get_code_type(), tx.get_version())
         if not tx.is_successful():
             return
         elif tx.get_code_type() == BankCodeType.REGISTER_LIBRA_TOKEN:
