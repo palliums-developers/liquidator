@@ -2,7 +2,6 @@ from .token_info import TokenInfo
 from .account import AccountView
 from conf.config import update_config
 from violas_client.banktypes.bytecode import CodeType as BankCodeType
-from violas_client.lbrtypes.bytecode import CodeType
 from violas_client.vlstypes.view import TransactionView
 from violas_client.oracle_client.bytecodes import CodeType as OracleCodType
 
@@ -47,23 +46,23 @@ class LiquidatorAPI():
         '''
         return filter(lambda account: account.has_borrow_any() and account.has_lock(currency_code), self.accounts.values())
 
-    def add_tx(self, tx: TransactionView, timestamp):
+    def add_tx(self, tx: TransactionView):
         if not tx.is_successful():
             return
         elif tx.get_code_type() == BankCodeType.REGISTER_LIBRA_TOKEN:
-            return self.add_register_libra_token(tx, timestamp)
+            return self.add_register_libra_token(tx)
         elif tx.get_code_type() == BankCodeType.PUBLISH:
             return self.add_publish(tx)
         elif tx.get_code_type() in (BankCodeType.BORROW2, BankCodeType.BORROW):
-            return self.add_borrow(tx, timestamp)
+            return self.add_borrow(tx)
         elif tx.get_code_type() in (BankCodeType.LOCK2, BankCodeType.LOCK, BankCodeType.LOCK_INDEX):
-            return self.add_lock(tx, timestamp)
+            return self.add_lock(tx)
         elif tx.get_code_type() in (BankCodeType.REDEEM2, BankCodeType.REDEEM):
-            return self.add_redeem(tx, timestamp)
+            return self.add_redeem(tx)
         elif tx.get_code_type() in (BankCodeType.REPAY_BORROW, BankCodeType.REPAY_BORROW2, BankCodeType.REPAY_BORROW_INDEX):
-            return self.add_repay_borrow(tx, timestamp)
+            return self.add_repay_borrow(tx)
         elif tx.get_code_type() == BankCodeType.LIQUIDATE_BORROW:
-            return self.add_liquidate_borrow(tx, timestamp)
+            return self.add_liquidate_borrow(tx)
         elif tx.get_code_type() == BankCodeType.UPDATE_COLLATERAL_FACTOR:
             return self.update_collateral_factor(tx)
         elif tx.get_code_type() == BankCodeType.UPDATE_PRICE_FROM_ORACLE:
@@ -81,7 +80,7 @@ class LiquidatorAPI():
         '''
         self.accounts[tx.get_sender()] = AccountView(tx.get_sender())
 
-    def add_register_libra_token(self, tx, timestamp):
+    def add_register_libra_token(self, tx):
         events = tx.get_bank_type_events(BankCodeType.REGISTER_LIBRA_TOKEN)
         if len(events) > 0:
             event = events[0].get_bank_event()
@@ -92,9 +91,9 @@ class LiquidatorAPI():
                 rate_multiplier=event.rate_multiplier//(365*24*60),
                 rate_jump_multiplier=event.rate_jump_multiplier//(365*24*60),
                 rate_kink=event.rate_kink,
-                last_minute=timestamp)
+                last_minute=events[0].get_timestamp())
 
-    def add_borrow(self, tx, timestamp):
+    def add_borrow(self, tx):
         '''
         1. 更新oracle价格
         2. accrue_interest
@@ -102,13 +101,14 @@ class LiquidatorAPI():
             借款人账户的数据
         '''
         ret = []
+        timestamps = tx.get_bank_timestamp()
         currency_code = tx.get_currency_code()
         token_info = self.get_token_info(currency_code)
         price = self.get_price(currency_code)
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
-        token_info.accrue_interest(timestamp)
+        token_info.accrue_interest(timestamps)
         token_info.add_borrow(tx)
         account = self.get_account(tx.get_sender())
         if account.add_borrow(currency_code, tx.get_amount(), self.token_infos) < 1:
@@ -122,7 +122,7 @@ class LiquidatorAPI():
                     ret.append(account.address)
         return ret
 
-    def add_lock(self, tx, timestamp):
+    def add_lock(self, tx):
         '''
         1. 更新oracle价格
         2. accrue_interest
@@ -131,13 +131,14 @@ class LiquidatorAPI():
         4. 更新token_info
         '''
         ret = []
+        timestamps = tx.get_bank_timestamp()
         currency_code = tx.get_currency_code()
         token_info = self.get_token_info(currency_code)
         price = self.get_price(currency_code)
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
-        token_info.accrue_interest(timestamp)
+        token_info.accrue_interest(timestamps)
         token_info.update_exchange_rate()
         account = self.get_account(tx.get_sender())
         if account.add_lock(currency_code, tx.get_amount(), self.token_infos) < 1:
@@ -153,7 +154,7 @@ class LiquidatorAPI():
                     ret.append(account.address)
         return ret
 
-    def add_redeem(self, tx, timestamp):
+    def add_redeem(self, tx):
         '''
         1. 更新oralce价格
         2. accrue_interest
@@ -162,18 +163,20 @@ class LiquidatorAPI():
         4. 更新token_info
         '''
         ret = []
+        timestamps = tx.get_bank_timestamp()
         currency_code = tx.get_currency_code()
         token_info = self.get_token_info(currency_code)
         price = self.get_price(currency_code)
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
-        token_info.accrue_interest(timestamp)
+        token_info.accrue_interest(timestamps)
         token_info.update_exchange_rate()
+
+        token_info.add_redeem(tx)
         account = self.get_account(tx.get_sender())
         if account.add_redeem(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
-        token_info.add_redeem(tx)
         if price > oracle_price:
             accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
             for account in accounts:
@@ -184,7 +187,7 @@ class LiquidatorAPI():
         return ret
 
 
-    def add_repay_borrow(self, tx, timestamp):
+    def add_repay_borrow(self, tx):
         '''
         1. 更新oralce价格
         2. accrue_interest
@@ -192,13 +195,14 @@ class LiquidatorAPI():
             还款人的数据
         '''
         ret = []
+        timestamps = tx.get_bank_timestamp()
         currency_code = tx.get_currency_code()
         token_info = self.get_token_info(currency_code)
         price = self.get_price(currency_code)
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
-        token_info.accrue_interest(timestamp)
+        token_info.accrue_interest(timestamps)
         account = self.get_account(tx.get_sender())
         if account.add_repay_borrow(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
@@ -212,12 +216,13 @@ class LiquidatorAPI():
                     ret.append(account.address)
         return ret
 
-    def add_liquidate_borrow(self, tx: TransactionView, timestamp):
+    def add_liquidate_borrow(self, tx: TransactionView):
         '''
         1. 质押币总额不变
         2. 借款纵隔
         '''
         ret = []
+        timestamps = tx.get_bank_timestamp()
         currency_code = tx.get_currency_code()
         collateral_currency = tx.get_collateral_currency()
         token_info = self.get_token_info(currency_code)
@@ -230,13 +235,13 @@ class LiquidatorAPI():
         if collateral_price != collateral_oracle_price:
             self.set_price(collateral_currency, collateral_oracle_price)
 
-        token_info.accrue_interest(timestamp)
+        token_info.accrue_interest(timestamps)
         token_info.add_liquidate_borrow(tx)
         account = self.get_account(tx.get_sender())
         borrower = self.get_account(tx.get_borrower())
         if account.add_liquidate_borrow_to_liquidator(collateral_currency, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
-        if borrower.add_liquidate_borrow_to_borrower(collateral_currency, tx.get_collateral_amount(), self.token_infos) < 1:
+        if borrower.add_liquidate_borrow_to_borrower(collateral_currency, tx.get_collateral_amount(), currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
 
         if price > oracle_price:

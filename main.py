@@ -17,6 +17,7 @@ def assert_account_consistence(address, tokens):
         assert tokens.borrows[0].principal == liquidator_api.accounts[address].borrow_amounts.amounts["USD"][0]
         assert tokens.borrows[0].interest_index == liquidator_api.accounts[address].borrow_amounts.amounts["USD"][1]
     #存款数据
+    print(tokens.ts[1].value, liquidator_api.accounts[address].lock_amounts.amounts["USD"])
     assert tokens.ts[1].value == liquidator_api.accounts[address].lock_amounts.amounts["USD"]
 
 def assert_token_consistence(currency, token_infos):
@@ -42,9 +43,12 @@ def publish_compound_module():
     client.set_bank_owner_address(a1.address)
     seq = client.bank_publish(a1)
     add_tx(a1.address, seq)
-    seq = client.bank_register_token(a1, "USD", a1.address, collater_factor=0.5, base_rate=0.15, rate_multiplier=0.2, rate_jump_mutiplier=0.4, rate_kink=0.8)
+    seq = client.bank_register_token(a1, "USD", a1.address, collater_factor=0.2, base_rate=0.15, rate_multiplier=0.2, rate_jump_mutiplier=0.4, rate_kink=0.8)
     add_tx(a1.address, seq)
-
+    seq = client.bank_update_collateral_factor(a1, "USD", 0.5)
+    add_tx(a1.address, seq)
+    seq = client.bank_update_rate_model(a1, "USD", 0.2, 0.3, 0.4, 0.9)
+    add_tx(a1.address, seq)
     price = client.get_account_state(client.ORACLE_OWNER_ADDRESS).oracle_get_exchange_rate("USD")
     liquidator_api.set_oracle_price("USD", price.value)
     liquidator_api.set_price("USD", price.value)
@@ -115,7 +119,6 @@ def test_redeem():
     tokens = client.get_account_state(a1.address).get_tokens_resource()
     assert_account_consistence(a1.address, tokens)
 
-
 def test_repay_borrow():
     wallet = Wallet.new()
     a1 = wallet.new_account()
@@ -136,3 +139,56 @@ def test_repay_borrow():
     assert_token_consistence("USD", token_info)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
     assert_account_consistence(a1.address, tokens)
+
+def test_update_collateral_factor():
+    wallet = Wallet.new()
+    a1 = wallet.new_account()
+    client.mint_coin(a1.address, 50_000_000, auth_key_prefix=a1.auth_key_prefix, currency_code="USD")
+    seq = client.bank_publish(a1)
+    add_tx(a1.address, seq)
+    seq = client.bank_lock(a1, 10_000_000, currency_code="USD")
+    add_tx(a1.address, seq)
+    seq = client.bank_borrow(a1, 500_000, currency_code="USD")
+    add_tx(a1.address, seq)
+    seq = client.bank_update_collateral_factor(a1, "USD", 0.2)
+    add_tx(a1.address, seq)
+
+    token_info = client.get_account_state(client.bank_module_address).get_token_info_store_resource().tokens[0:2]
+    assert_token_consistence("USD", token_info)
+    tokens = client.get_account_state(a1.address).get_tokens_resource()
+    assert_account_consistence(a1.address, tokens)
+
+def test_liquidator_borrow():
+    wallet = Wallet.new()
+    a1 = wallet.new_account()
+    a2 = wallet.new_account()
+    client.mint_coin(a1.address, 50_000_000, auth_key_prefix=a1.auth_key_prefix, currency_code="USD")
+    client.mint_coin(a2.address, 50_000_000, auth_key_prefix=a2.auth_key_prefix, currency_code="USD")
+    seq = client.bank_publish(a1)
+    add_tx(a1.address, seq)
+    seq = client.bank_publish(a2)
+    add_tx(a2.address, seq)
+    seq = client.bank_enter(a2, 10_000_000, "USD")
+    add_tx(a2.address, seq)
+    seq = client.bank_lock(a1, 10_000_001, currency_code="USD")
+    add_tx(a1.address, seq)
+    seq = client.bank_lock(a2, 10_000_000, currency_code="USD")
+    add_tx(a2.address, seq)
+    seq = client.bank_borrow(a1, 5_000_000, currency_code="USD")
+    add_tx(a1.address, seq)
+    time.sleep(60)
+    seq = client.bank_liquidate_borrow(a2, a1.address, "USD", "USD", 1)
+
+    add_tx(a2.address, seq)
+
+    token_info = client.get_account_state(client.bank_module_address).get_token_info_store_resource().tokens[0:2]
+    assert_token_consistence("USD", token_info)
+    tokens = client.get_account_state(a1.address).get_tokens_resource()
+    assert_account_consistence(a1.address, tokens)
+
+test_lock()
+test_borrow()
+test_redeem()
+test_repay_borrow()
+test_liquidator_borrow()
+test_update_collateral_factor()

@@ -56,7 +56,6 @@ class TokenInfo():
         cnt = safe_sub(minute, self.last_minute)
         if cnt <= 0:
             return self
-        print("timestamp",timestamp, cnt)
         borrow_rate = borrow_rate *cnt
         self.last_minute = minute
         interest_accumulated = mantissa_mul(self.total_borrows, borrow_rate)
@@ -96,8 +95,8 @@ class TokenInfo():
     def update_exchange_rate(self):
         if self.total_supply == 0:
             return new_mantissa(1, 100)
-        print("update", self.contract_value, self.total_borrows, self.total_reserves, self.total_supply)
-        return new_mantissa(self.contract_value + self.total_borrows - self.total_reserves, self.total_supply)
+        self.exchange_rate = new_mantissa(self.contract_value + self.total_borrows - self.total_reserves, self.total_supply)
+        return self.exchange_rate
 
     def add_lock(self, tx):
         amount = tx.get_amount()
@@ -112,7 +111,8 @@ class TokenInfo():
 
     def add_redeem(self, tx):
         amount = tx.get_amount()
-        self.total_supply = safe_sub(self.total_supply, amount)
+        tokens = mantissa_div(amount, self.exchange_rate)
+        self.total_supply = safe_sub(self.total_supply, tokens)
         self.contract_value -= amount
 
     def add_repay_borrow(self, tx):
