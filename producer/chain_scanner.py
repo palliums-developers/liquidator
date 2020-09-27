@@ -22,41 +22,28 @@ class ScannerThread(Thread):
         self.state = self.UPDATING
         if config.get("version") is not None:
             self.__class__.VERSION = config.get("version")
-        self.last_version = self.VERSION
+        self.last_version = self.__class__.VERSION
 
 
     def run(self):
         limit = 1000
         while True:
-            txs = self.client.get_transactions(self.VERSION, limit)
+            txs = self.client.get_transactions(self.__class__.VERSION, limit)
             if len(txs) == 0:
                 continue
-            while True:
-                if txs[-1].get_code_type() == CodeType.BLOCK_METADATA:
-                    break
-                else:
-                    tx = self.client.get_transaction(self.VERSION+len(txs))
-                    if tx is not None:
-                        txs.append(tx)
-
             for index, tx in enumerate(txs):
                 if tx.get_code_type() != CodeType.BLOCK_METADATA:
-                    i = 1
-                    while True:
-                        if txs[index+i].get_code_type() == CodeType.BLOCK_METADATA:
-                            timestamp = txs[index+i].get_expiration_time()
-                            break
-                        i += 1
-                    addrs = liquidator_api.add_tx(tx, timestamp)
+                    addrs = liquidator_api.add_tx(tx)
                     if self.state == self.UPDATED:
                         for addr in addrs:
                             self.queue.put(addr)
             self.__class__.VERSION += len(txs)
             if self.state == self.UPDATING and len(txs) < limit:
                 self.state = self.UPDATED
-            if self.VERSION - self.last_version >= 100000:
-                liquidator_api.update_config(self.VERSION)
-                self.last_version = self.VERSION
+            if self.__class__.VERSION - self.last_version >= 100000:
+                liquidator_api.update_config(self.__class__.VERSION)
+                self.last_version = self.__class__.VERSION
+            print(self.__class__.VERSION)
 
 
 

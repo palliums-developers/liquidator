@@ -1,7 +1,7 @@
 import time
 from queue import Queue
 from threading import Thread
-from cache.api import LiquidatorAPI
+from cache.api import liquidator_api
 
 class CheckerThread(Thread):
     def __init__(self, queue: Queue):
@@ -15,7 +15,7 @@ class CheckerThread(Thread):
                 time.sleep(2)
                 cur_time = time.time() // 60
                 if cur_time > self.latest_update_time:
-                    addrs = LiquidatorAPI.check_borrow_index(cur_time)
+                    addrs = liquidator_api.check_borrow_index(cur_time)
                     for addr in addrs:
                         self.queue.put(addr)
                 self.latest_update_time = cur_time
