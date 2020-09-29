@@ -32,7 +32,11 @@ class LiquidatorAPI():
         return self.token_infos.get(currency_code)
 
     def get_account(self, addr) -> AccountView:
-        return self.accounts.get(addr)
+        account = self.accounts.get(addr)
+        if account is None:
+            account = AccountView(addr)
+            self.accounts[addr] = account
+        return account
 
     def get_accounts_of_state(self, max_health):
         return filter(lambda account: account.health <= max_health, self.accounts.values())
