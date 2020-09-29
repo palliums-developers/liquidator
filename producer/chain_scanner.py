@@ -43,7 +43,6 @@ class ScannerThread(Thread):
             if self.__class__.VERSION - self.last_version >= 100000:
                 liquidator_api.update_config(self.__class__.VERSION)
                 self.last_version = self.__class__.VERSION
-            print(self.__class__.VERSION)
 
 
 
