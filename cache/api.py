@@ -1,5 +1,6 @@
 from .token_info import TokenInfo
 from .account import AccountView
+from .util import mantissa_mul, mantissa_div, new_mantissa
 from conf.config import update_config
 from violas_client.banktypes.bytecode import CodeType as BankCodeType
 from violas_client.vlstypes.view import TransactionView
@@ -230,18 +231,26 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
+        collateral_token_info = self.get_token_info(collateral_currency)
         collateral_price = self.get_price(collateral_currency)
         collateral_oracle_price = self.get_oracle_price(collateral_currency)
         if collateral_price != collateral_oracle_price:
             self.set_price(collateral_currency, collateral_oracle_price)
 
         token_info.accrue_interest(timestamps)
+
         token_info.add_liquidate_borrow(tx)
+        amount = tx.get_amount()
+        value = mantissa_mul(amount, price)
+        value = mantissa_div(value, collateral_token_info.update_exchange_rate())
+        value = mantissa_div(value, collateral_price)
+        value += mantissa_mul(value, new_mantissa(1, 10))
+
         account = self.get_account(tx.get_sender())
         borrower = self.get_account(tx.get_borrower())
-        if account.add_liquidate_borrow_to_liquidator(collateral_currency, tx.get_amount(), self.token_infos) < 1:
+        if account.add_liquidate_borrow_to_liquidator(collateral_currency, value, self.token_infos) < 1:
             ret.append(account.address)
-        if borrower.add_liquidate_borrow_to_borrower(collateral_currency, tx.get_collateral_amount(), currency_code, tx.get_amount(), self.token_infos) < 1:
+        if borrower.add_liquidate_borrow_to_borrower(collateral_currency, value, currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
 
         if price > oracle_price:
@@ -268,7 +277,8 @@ class LiquidatorAPI():
             变大则更新有lock且有贷款的
         '''
         ret = []
-        event = tx.get_bank_event()
+        events = tx.get_bank_type_events(BankCodeType.UPDATE_COLLATERAL_FACTOR)
+        event = events[0]
         factor = event.get_factor()
         currency_code = event.get_currency_code()
         token_info = self.get_token_info(currency_code)

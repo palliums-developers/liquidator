@@ -17,8 +17,16 @@ class AccountLockAmounts():
         old_amount = self.amounts.get(currency_code, 0)
         self.amounts[currency_code] = old_amount+amount
 
+    def add_original_amount(self, currency_code, amount):
+        old_amount = self.amounts.get(currency_code, 0)
+        self.amounts[currency_code] = old_amount + amount
+
     def reduce_amount(self, currency_code, amount, exchange_rate):
         amount = mantissa_div(amount, exchange_rate)
+        old_amount = self.amounts.get(currency_code)
+        self.amounts[currency_code] = old_amount-amount
+
+    def reduce_original_amount(self, currency_code, amount):
         old_amount = self.amounts.get(currency_code)
         self.amounts[currency_code] = old_amount-amount
 
@@ -139,7 +147,7 @@ class AccountView():
 
     def add_liquidate_borrow_to_borrower(self, collateral_currency_code, collateral_amount,
                                          currency_code, amount, token_infos):
-        self.lock_amounts.reduce_amount(collateral_currency_code, collateral_amount, token_infos.get(collateral_currency_code).exchange_rate)
+        self.lock_amounts.reduce_original_amount(collateral_currency_code, collateral_amount)
         self.borrow_amounts.reduce_amount(currency_code, amount, token_infos.get(collateral_currency_code).borrow_index)
         self.update_health_state(token_infos)
         return self.health
