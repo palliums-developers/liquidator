@@ -28,22 +28,25 @@ class ScannerThread(Thread):
     def run(self):
         limit = 1000
         while True:
-            txs = self.client.get_transactions(self.__class__.VERSION, limit)
-            if len(txs) == 0:
-                continue
-            for index, tx in enumerate(txs):
-                if tx.get_code_type() != CodeType.BLOCK_METADATA:
-                    addrs = liquidator_api.add_tx(tx)
-                    if self.state == self.UPDATED:
-                        for addr in addrs:
-                            self.queue.put(addr)
-            self.__class__.VERSION += len(txs)
-            if self.state == self.UPDATING and len(txs) < limit:
-                self.state = self.UPDATED
-            if self.__class__.VERSION - self.last_version >= 100000:
-                liquidator_api.update_config(self.__class__.VERSION)
-                self.last_version = self.__class__.VERSION
-
+            try:
+                txs = self.client.get_transactions(self.__class__.VERSION, limit)
+                if len(txs) == 0:
+                    continue
+                for index, tx in enumerate(txs):
+                    if tx.get_code_type() != CodeType.BLOCK_METADATA:
+                        addrs = liquidator_api.add_tx(tx)
+                        if self.state == self.UPDATED:
+                            for addr in addrs:
+                                self.queue.put(addr)
+                self.__class__.VERSION += len(txs)
+                if self.state == self.UPDATING and len(txs) < limit:
+                    self.state = self.UPDATED
+                if self.__class__.VERSION - self.last_version >= 100000:
+                    liquidator_api.update_config(self.__class__.VERSION)
+                    self.last_version = self.__class__.VERSION
+                print(self.__class__.VERSION)
+            except Exception as e:
+                print(e)
 
 
 
