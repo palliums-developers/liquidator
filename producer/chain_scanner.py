@@ -12,7 +12,7 @@ class ScannerThread(Thread):
 
     UPDATING = 0
     UPDATED = 1
-    VERSION = 0
+    VERSION = 1823000
 
     def __init__(self, queue: Queue, config):
         global liquidator_api
@@ -24,9 +24,13 @@ class ScannerThread(Thread):
             self.__class__.VERSION = config.get("version")
         self.last_version = self.__class__.VERSION
 
-
     def run(self):
         limit = 1000
+        tx = self.client.get_account_transaction(self.client.ORACLE_OWNER_ADDRESS, 1)
+        liquidator_api.add_tx(tx)
+        for seq in range(self.client.get_sequence_number(self.client.BANK_OWNER_ADDRESS)):
+            tx = self.client.get_account_transaction(self.client.BANK_OWNER_ADDRESS, seq)
+            liquidator_api.add_tx(tx)
         while True:
             try:
                 txs = self.client.get_transactions(self.__class__.VERSION, limit)
@@ -44,7 +48,6 @@ class ScannerThread(Thread):
                 if self.__class__.VERSION - self.last_version >= 100000:
                     liquidator_api.update_config(self.__class__.VERSION)
                     self.last_version = self.__class__.VERSION
-                print(self.__class__.VERSION)
             except Exception as e:
                 print(e)
 
