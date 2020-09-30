@@ -74,6 +74,7 @@ class TokenInfo():
             return ret
         borrow_rate = borrow_rate * cnt
         ret.last_minute = minute
+        print(ret.total_borrows, borrow_rate, type(ret.total_borrows), type(borrow_rate))
         interest_accumulated = mantissa_mul(ret.total_borrows, borrow_rate)
         ret.total_borrows = ret.total_borrows + interest_accumulated
         reserve_factor = new_mantissa(1, 20)
