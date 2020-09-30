@@ -13,7 +13,7 @@ class CheckerThread(Thread):
         while True:
             try:
                 time.sleep(2)
-                cur_time = time.time() // 60
+                cur_time = int(time.time() // 60)
                 if cur_time > self.latest_update_time:
                     addrs = liquidator_api.check_borrow_index(cur_time)
                     for addr in addrs:
