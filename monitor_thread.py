@@ -23,7 +23,8 @@ class MonitorThread(Thread):
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, token_infos)
             except Exception as e:
-                print(e)
+                import traceback
+                print("monitor_thread", traceback.print_exc())
 
     def assert_account_consistence(self, address, tokens):
         if isinstance(address, bytes):

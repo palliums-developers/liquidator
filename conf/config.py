@@ -1,7 +1,7 @@
 import os
 import json
 
-URL = "http://47.93.114.230:50001"
+URL = "http://127.0.0.1:50001"
 
 config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './config.json'))
 

@@ -20,4 +20,5 @@ class CheckerThread(Thread):
                         self.queue.put(addr)
                 self.latest_update_time = cur_time
             except Exception as e:
-                print(e)
+                import traceback
+                print("check_thread", traceback.print_exc())
