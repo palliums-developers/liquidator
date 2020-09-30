@@ -90,6 +90,7 @@ class LiquidatorAPI():
         if len(events) > 0:
             event = events[0].get_bank_event()
             self.token_infos[event.currency_code] = TokenInfo.empty(
+                oracle_price=self.get_oracle_price(event.currency_code),
                 currency_code=event.currency_code,
                 collateral_factor=event.collateral_factor,
                 base_rate=event.base_rate//(365*24*60),
@@ -149,7 +150,7 @@ class LiquidatorAPI():
         if account.add_lock(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
         token_info.add_lock(tx)
-
+        print(tx.get_currency_code())
         if price > oracle_price:
             accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
             for account in accounts:
@@ -365,6 +366,9 @@ class LiquidatorAPI():
         token_info = self.get_token_info(currency_code)
         if token_info:
             token_info.oracle_price = price
+        else:
+            token = TokenInfo(currency_code=currency_code, oracle_price=price)
+            self.token_infos[currency_code] = token
 
     def update_config(self, version):
         json_value = self.to_json()

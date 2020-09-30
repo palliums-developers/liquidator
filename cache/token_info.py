@@ -11,7 +11,7 @@ class TokenInfo():
         self.total_borrows = kwargs.get("total_borrows")
         self.borrow_index = kwargs.get("borrow_index")
 
-        self.oracle_price = 0
+        self.oracle_price = kwargs.get("oracle_price")
         self.price = kwargs.get("price")
 
         self.collateral_factor = kwargs.get("collateral_factor")
@@ -24,8 +24,6 @@ class TokenInfo():
         # resource struct T
         self.contract_value = kwargs.get("contract_value")
 
-        #更新
-        self.exchange_rate = self.update_exchange_rate()
 
     def to_json(self):
         return self.__dict__
@@ -40,6 +38,7 @@ class TokenInfo():
                    total_supply=0,
                    total_reserves=0,
                    total_borrows=0,
+                   oracle_price= kwargs.get("oracle_price"),
                    borrow_index=new_mantissa(1, 1),
                    price=0,
                    collateral_factor=kwargs.get("collateral_factor"),
@@ -94,7 +93,8 @@ class TokenInfo():
 
     def update_exchange_rate(self):
         if self.total_supply == 0:
-            return new_mantissa(1, 100)
+            self.exchange_rate = new_mantissa(1, 100)
+            return self.exchange_rate
         self.exchange_rate = new_mantissa(self.contract_value + self.total_borrows - self.total_reserves, self.total_supply)
         return self.exchange_rate
 

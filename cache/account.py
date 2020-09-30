@@ -80,6 +80,7 @@ class AccountBorrowAmounts():
 
     @staticmethod
     def get_borrow_value(principal, borrow_index, cur_borrow_index, price):
+        print(mantissa_div(mantissa_mul(principal, cur_borrow_index), borrow_index), price)
         return mantissa_mul(mantissa_div(mantissa_mul(principal, cur_borrow_index), borrow_index), price)
 
     def get_total_borrow_value(self, token_infos):
@@ -89,6 +90,7 @@ class AccountBorrowAmounts():
             cur_borrow_index = info.borrow_index
             price = info.price
             value += self.get_borrow_value(amount, borrow_index, cur_borrow_index, price)
+        print(value)
         return value
 
 class AccountView():
