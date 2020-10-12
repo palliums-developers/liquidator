@@ -40,8 +40,9 @@ class ScannerThread(Thread):
                     if tx.get_code_type() != CodeType.BLOCK_METADATA:
                         addrs = liquidator_api.add_tx(tx)
                         if self.state == self.UPDATED:
-                            for addr in addrs:
-                                self.queue.put(addr)
+                            if addrs is not None:
+                                for addr in addrs:
+                                    self.queue.put(addr)
                 self.__class__.VERSION += len(txs)
                 if self.state == self.UPDATING and len(txs) < limit:
                     self.state = self.UPDATED
