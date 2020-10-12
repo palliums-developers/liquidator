@@ -15,7 +15,7 @@ class MonitorThread(Thread):
         while True:
             time.sleep(self.INTERVAL)
             try:
-                token_infos = self.client.get_account_state(self.client.get_bank_module_address()).get_tokens_resource()
+                token_infos = self.client.get_account_state(self.client.get_bank_owner_address()).get_token_info_store_resource().tokens
                 accounts = liquidator_api.accounts
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
@@ -61,3 +61,7 @@ class MonitorThread(Thread):
         assert token_infos[0].rate_jump_multiplier == local_info.rate_jump_multiplier
         assert token_infos[0].rate_kink == local_info.rate_kink
         assert token_infos[0].last_minute == local_info.last_minute
+
+# monitor_thread = MonitorThread()
+# monitor_thread.setDaemon(False)
+# monitor_thread.start()
