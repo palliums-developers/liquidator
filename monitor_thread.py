@@ -15,7 +15,7 @@ class MonitorThread(Thread):
         while True:
             time.sleep(self.INTERVAL)
             try:
-                token_infos = self.client.get_account_state(self.client.get_bank_owner_address()).get_token_info_store_resource().tokens
+                token_infos = self.client.get_account_state(self.client.get_bank_owner_address()).get_token_info_store_resource(accrue_interest=False).tokens
                 accounts = liquidator_api.accounts
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
