@@ -49,8 +49,11 @@ class MonitorThread(Thread):
         while len(tokens.borrows) > i:
             currency = self.client.bank_get_currency_code(i)
             locks = liquidator_api.accounts[address].lock_amounts.amounts
+            value = locks.get(currency)
+            if value is None:
+                value = 0
             #存款数据
-            assert tokens.ts[i+1].value == locks[currency]
+            assert tokens.ts[i+1].value == value
 
     @staticmethod
     def assert_token_consistence(currency, token_infos):
