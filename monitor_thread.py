@@ -26,7 +26,7 @@ class MonitorThread(Thread):
                     except Exception as e:
                         print(currency, index, currency_info)
                 for addr in accounts.keys():
-                    self.assert_account_consistence(addr, token_infos)
+                    self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
             except Exception as e:
                 import traceback
                 print("monitor_thread", traceback.print_exc())
