@@ -21,7 +21,7 @@ class MonitorThread(Thread):
                 for currency in currencies:
                     try:
                         index = self.client.bank_get_currency_index(currency_code=currency)
-                        currency_info = token_infos[index*2: index*2+2]
+                        currency_info = token_infos[index: index+2]
                         self.assert_token_consistence(currency, currency_info)
                     except Exception as e:
                         print(currency, index, currency_info)
