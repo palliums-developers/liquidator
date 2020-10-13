@@ -6,9 +6,9 @@ from .util import new_mantissa, safe_sub, mantissa_mul, mantissa_div
 class TokenInfo():
     def __init__(self, **kwargs):
         self.currency_code = kwargs.get("currency_code")
-        self.total_supply = kwargs.get("total_supply")
-        self.total_reserves = kwargs.get("total_reserves")
-        self.total_borrows = kwargs.get("total_borrows")
+        self.total_supply = kwargs.get("total_supply", 0)
+        self.total_reserves = kwargs.get("total_reserves", 0)
+        self.total_borrows = kwargs.get("total_borrows", 0)
         self.borrow_index = kwargs.get("borrow_index")
 
         self.oracle_price = kwargs.get("oracle_price")
@@ -97,6 +97,7 @@ class TokenInfo():
             return self.exchange_rate
         self.exchange_rate = new_mantissa(self.contract_value + self.total_borrows - self.total_reserves, self.total_supply)
         return self.exchange_rate
+
 
     def add_lock(self, tx):
         amount = tx.get_amount()

@@ -123,6 +123,7 @@ class AccountView():
         self.update_health_state(token_infos)
         return self.health
 
+
     def add_lock(self, currency_code, amount, token_infos):
         exchange_rate = token_infos.get(currency_code).exchange_rate
         self.lock_amounts.add_amount(currency_code, amount, exchange_rate)

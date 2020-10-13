@@ -58,6 +58,10 @@ class LiquidatorAPI():
             return self.add_register_libra_token(tx)
         elif tx.get_code_type() == BankCodeType.PUBLISH:
             return self.add_publish(tx)
+        elif tx.get_code_type() == BankCodeType.ENTER_BANK:
+            return self.add_enter_bank(tx)
+        elif tx.get_code_type() == BankCodeType.EXIT_BANK:
+            return self.add_exit_bank(tx)
         elif tx.get_code_type() in (BankCodeType.BORROW2, BankCodeType.BORROW):
             return self.add_borrow(tx)
         elif tx.get_code_type() in (BankCodeType.LOCK2, BankCodeType.LOCK, BankCodeType.LOCK_INDEX):
@@ -98,6 +102,12 @@ class LiquidatorAPI():
                 rate_jump_multiplier=event.rate_jump_multiplier//(365*24*60),
                 rate_kink=event.rate_kink,
                 last_minute=events[0].get_timestamp())
+
+    def add_enter_bank(self, tx):
+        pass
+
+    def add_exit_bank(self, tx):
+        pass
 
     def add_borrow(self, tx):
         '''
@@ -150,7 +160,6 @@ class LiquidatorAPI():
         if account.add_lock(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
         token_info.add_lock(tx)
-        print(tx.get_currency_code())
         if price > oracle_price:
             accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
             for account in accounts:
