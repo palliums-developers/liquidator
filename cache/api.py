@@ -55,36 +55,34 @@ class LiquidatorAPI():
         if not tx.is_successful():
             return
         elif tx.get_code_type() == BankCodeType.REGISTER_LIBRA_TOKEN:
-            self.add_register_libra_token(tx)
+            return self.add_register_libra_token(tx)
         elif tx.get_code_type() == BankCodeType.PUBLISH:
-            self.add_publish(tx)
+            return self.add_publish(tx)
         elif tx.get_code_type() == BankCodeType.ENTER_BANK:
-            self.add_enter_bank(tx)
+            return self.add_enter_bank(tx)
         elif tx.get_code_type() == BankCodeType.EXIT_BANK:
-            self.add_exit_bank(tx)
+            return self.add_exit_bank(tx)
         elif tx.get_code_type() in (BankCodeType.BORROW2, BankCodeType.BORROW):
-            self.add_borrow(tx)
+            return self.add_borrow(tx)
         elif tx.get_code_type() in (BankCodeType.LOCK2, BankCodeType.LOCK, BankCodeType.LOCK_INDEX):
-            self.add_lock(tx)
+            return self.add_lock(tx)
         elif tx.get_code_type() in (BankCodeType.REDEEM2, BankCodeType.REDEEM):
-            self.add_redeem(tx)
+            return self.add_redeem(tx)
         elif tx.get_code_type() in (BankCodeType.REPAY_BORROW, BankCodeType.REPAY_BORROW2, BankCodeType.REPAY_BORROW_INDEX):
-            self.add_repay_borrow(tx)
+            return self.add_repay_borrow(tx)
         elif tx.get_code_type() == BankCodeType.LIQUIDATE_BORROW:
-            self.add_liquidate_borrow(tx)
+            return self.add_liquidate_borrow(tx)
         elif tx.get_code_type() == BankCodeType.UPDATE_COLLATERAL_FACTOR:
-            self.update_collateral_factor(tx)
+            return self.update_collateral_factor(tx)
         elif tx.get_code_type() == BankCodeType.UPDATE_PRICE_FROM_ORACLE:
-            self.update_price_from_oracle(tx)
+            print("UPDATE_PRICE_FROM_ORACLE")
+            return self.update_price_from_oracle(tx)
         elif tx.get_code_type() == BankCodeType.UPDATE_PRICE:
-            self.update_price(tx)
+            return self.update_price(tx)
         elif tx.get_code_type() == OracleCodType.UPDATE_EXCHANGE_RATE:
-            self.update_oracle_price(tx)
+            return self.update_oracle_price(tx)
         elif tx.get_code_type() == BankCodeType.UPDATE_RATE_MODEL:
-            self.update_rate_model(tx)
-        else:
-            return
-        print(tx.get_version(), tx.get_code_type())
+            return self.update_rate_model(tx)
 
     def add_publish(self, tx):
         '''
