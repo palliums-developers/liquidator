@@ -52,6 +52,7 @@ class LiquidatorAPI():
         return filter(lambda account: account.has_borrow_any() and account.has_lock(currency_code), self.accounts.values())
 
     def add_tx(self, tx: TransactionView):
+        print(tx.get_code_type())
         if not tx.is_successful():
             return
         elif tx.get_code_type() == BankCodeType.REGISTER_LIBRA_TOKEN:
@@ -75,7 +76,6 @@ class LiquidatorAPI():
         elif tx.get_code_type() == BankCodeType.UPDATE_COLLATERAL_FACTOR:
             return self.update_collateral_factor(tx)
         elif tx.get_code_type() == BankCodeType.UPDATE_PRICE_FROM_ORACLE:
-            print("UPDATE_PRICE_FROM_ORACLE")
             return self.update_price_from_oracle(tx)
         elif tx.get_code_type() == BankCodeType.UPDATE_PRICE:
             return self.update_price(tx)

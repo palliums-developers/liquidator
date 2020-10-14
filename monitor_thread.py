@@ -1,4 +1,5 @@
 import time
+import traceback
 from threading import Thread
 from conf.config import URL
 from violas_client import Client
@@ -29,7 +30,6 @@ class MonitorThread(Thread):
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
             except Exception as e:
-                import traceback
                 print("monitor_thread", traceback.print_exc())
 
     def assert_account_consistence(self, address, tokens):

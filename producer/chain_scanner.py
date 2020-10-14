@@ -1,6 +1,7 @@
 '''
     扫链服务
 '''
+import traceback
 from queue import Queue
 from threading import Thread
 from violas_client import Client
@@ -50,7 +51,6 @@ class ScannerThread(Thread):
                     liquidator_api.update_config(self.__class__.VERSION)
                     self.last_version = self.__class__.VERSION
             except Exception as e:
-                import traceback
                 print("chain_scanner", traceback.print_exc())
                 print(self.__class__.VERSION)
 
