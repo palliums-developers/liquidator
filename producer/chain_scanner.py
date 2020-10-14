@@ -26,11 +26,11 @@ class ScannerThread(Thread):
 
     def run(self):
         limit = 1000
-        tx = self.client.get_account_transaction(self.client.ORACLE_OWNER_ADDRESS, 1)
-        liquidator_api.add_tx(tx)
-        for seq in range(self.client.get_sequence_number(self.client.BANK_OWNER_ADDRESS)):
-            tx = self.client.get_account_transaction(self.client.BANK_OWNER_ADDRESS, seq)
-            liquidator_api.add_tx(tx)
+        # tx = self.client.get_account_transaction(self.client.ORACLE_OWNER_ADDRESS, 1)
+        # liquidator_api.add_tx(tx)
+        # for seq in range(self.client.get_sequence_number(self.client.BANK_OWNER_ADDRESS)):
+        #     tx = self.client.get_account_transaction(self.client.BANK_OWNER_ADDRESS, seq)
+        #     liquidator_api.add_tx(tx)
         while True:
             try:
                 txs = self.client.get_transactions(self.__class__.VERSION, limit)
