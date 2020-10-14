@@ -24,6 +24,7 @@ class MonitorThread(Thread):
                         currency_info = token_infos[index: index+2]
                         self.assert_token_consistence(currency, currency_info)
                     except Exception as e:
+                        print(e)
                         print(currency, index, currency_info)
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
