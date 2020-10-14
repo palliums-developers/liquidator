@@ -52,7 +52,6 @@ class LiquidatorAPI():
         return filter(lambda account: account.has_borrow_any() and account.has_lock(currency_code), self.accounts.values())
 
     def add_tx(self, tx: TransactionView):
-        print(tx.get_code_type())
         if not tx.is_successful():
             return
         elif tx.get_code_type() == BankCodeType.REGISTER_LIBRA_TOKEN:
@@ -125,6 +124,7 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
+            price = oracle_price
         token_info.accrue_interest(timestamps)
         token_info.add_borrow(tx)
         account = self.get_account(tx.get_sender())
@@ -155,6 +155,7 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
+            price = oracle_price
         token_info.accrue_interest(timestamps)
         token_info.update_exchange_rate()
         account = self.get_account(tx.get_sender())
@@ -186,6 +187,7 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
+            price = oracle_price
         token_info.accrue_interest(timestamps)
         token_info.update_exchange_rate()
 
@@ -218,6 +220,8 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
+            price = oracle_price
+
         token_info.accrue_interest(timestamps)
         account = self.get_account(tx.get_sender())
         if account.add_repay_borrow(currency_code, tx.get_amount(), self.token_infos) < 1:
@@ -246,6 +250,7 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
+            price = oracle_price
         collateral_token_info = self.get_token_info(collateral_currency)
         collateral_price = self.get_price(collateral_currency)
         collateral_oracle_price = self.get_oracle_price(collateral_currency)
@@ -318,6 +323,7 @@ class LiquidatorAPI():
         oracle_price = self.get_oracle_price(currency_code)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
+            price = oracle_price
         if oracle_price is not None and price > oracle_price:
             accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
             for account in accounts:
