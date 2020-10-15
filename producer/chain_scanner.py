@@ -29,30 +29,30 @@ class ScannerThread(Thread):
         limit = 1000
         # tx = self.client.get_account_transaction(self.client.ORACLE_OWNER_ADDRESS, 1)
         # liquidator_api.add_tx(tx)
-        for seq in range(self.client.get_sequence_number(self.client.ORACLE_OWNER_ADDRESS)-50, self.client.get_sequence_number(self.client.ORACLE_OWNER_ADDRESS)):
-            tx = self.client.get_account_transaction(self.client.ORACLE_OWNER_ADDRESS, seq)
-            liquidator_api.add_tx(tx)
-        # while True:
-        #     try:
-        #         txs = self.client.get_transactions(self.__class__.VERSION, limit)
-        #         if len(txs) == 0:
-        #             continue
-        #         for index, tx in enumerate(txs):
-        #             if tx.get_code_type() != CodeType.BLOCK_METADATA:
-        #                 addrs = liquidator_api.add_tx(tx)
-        #                 if self.state == self.UPDATED:
-        #                     if addrs is not None:
-        #                         for addr in addrs:
-        #                             self.queue.put(addr)
-        #         self.__class__.VERSION += len(txs)
-        #         if self.state == self.UPDATING and len(txs) < limit:
-        #             self.state = self.UPDATED
-        #         if self.__class__.VERSION - self.last_version >= 100000:
-        #             liquidator_api.update_config(self.__class__.VERSION)
-        #             self.last_version = self.__class__.VERSION
-        #     except Exception as e:
-        #         print("chain_scanner", traceback.print_exc())
-        #         print(self.__class__.VERSION)
+        # for seq in range(self.client.get_sequence_number(self.client.ORACLE_OWNER_ADDRESS)-50, self.client.get_sequence_number(self.client.ORACLE_OWNER_ADDRESS)):
+        #     tx = self.client.get_account_transaction(self.client.ORACLE_OWNER_ADDRESS, seq)
+        #     liquidator_api.add_tx(tx)
+        while True:
+            try:
+                txs = self.client.get_transactions(self.__class__.VERSION, limit)
+                if len(txs) == 0:
+                    continue
+                for index, tx in enumerate(txs):
+                    if tx.get_code_type() != CodeType.BLOCK_METADATA:
+                        addrs = liquidator_api.add_tx(tx)
+                        if self.state == self.UPDATED:
+                            if addrs is not None:
+                                for addr in addrs:
+                                    self.queue.put(addr)
+                self.__class__.VERSION += len(txs)
+                if self.state == self.UPDATING and len(txs) < limit:
+                    self.state = self.UPDATED
+                if self.__class__.VERSION - self.last_version >= 100000:
+                    liquidator_api.update_config(self.__class__.VERSION)
+                    self.last_version = self.__class__.VERSION
+            except Exception as e:
+                print("chain_scanner", traceback.print_exc())
+                print(self.__class__.VERSION)
 
 
 

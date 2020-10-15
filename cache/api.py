@@ -103,12 +103,6 @@ class LiquidatorAPI():
                 rate_kink=event.rate_kink,
                 last_minute=events[0].get_timestamp())
 
-    def add_enter_bank(self, tx):
-        pass
-
-    def add_exit_bank(self, tx):
-        pass
-
     def add_borrow(self, tx):
         '''
         1. 更新oracle价格
