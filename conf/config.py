@@ -2,6 +2,7 @@ import os
 import json
 
 URL = "http://47.93.114.230:50001"
+faucet_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '../key/mint_bj.key'))
 
 config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './config.json'))
 

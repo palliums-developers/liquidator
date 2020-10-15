@@ -2,12 +2,13 @@ import time
 from queue import Queue
 from flask import Flask
 from conf.config import read_config
-from producer.chain_scanner import ScannerThread, URL
+from producer.chain_scanner import ScannerThread
 from producer.regular_checker import CheckerThread
 from cache.api import liquidator_api
 from monitor_thread import MonitorThread
 from violas_client import Client
-from conf.config import URL
+from conf.config import URL, faucet_file
+from consumer.liquidate_borrow import LiquidateBorrowThread
 
 app = Flask(__name__)
 
@@ -47,7 +48,11 @@ if __name__ == "__main__":
             update_state_thread = CheckerThread(unhealth_queue)
             update_state_thread.setDaemon(True)
             update_state_thread.start()
+            liquidator_thread = LiquidateBorrowThread(unhealth_queue, URL, faucet_file)
+            liquidator_thread.setDaemon(True)
+            liquidator_thread.start()
             break
+
     monitor_thread = MonitorThread()
     monitor_thread.setDaemon(True)
     monitor_thread.start()
