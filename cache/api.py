@@ -32,7 +32,7 @@ class LiquidatorAPI():
         return self.token_infos.get(currency_code)
 
     def get_account(self, addr) -> AccountView:
-        account = self.accounts.get(addr)
+        account = self.accounts.get(addr.upper())
         if account is None:
             account = AccountView(addr)
             self.accounts[addr] = account

@@ -4,7 +4,7 @@ from violas_client import Client
 from cache.util import new_mantissa
 
 class LiquidateBorrowThread(Thread):
-    HOLDING_RATIO = 1.5
+    HOLDING_RATIO = 100
     LIQUIDATE_LIMIT = 10
 
     def __init__(self, queue: Queue, url, faucet_file):
@@ -51,7 +51,7 @@ class LiquidateBorrowThread(Thread):
             if bank_amount is None or bank_amount < amount*self.HOLDING_RATIO:
                 a = self.client.get_balances(self.client.testnet_dd_account.address).get(borrowed_currency)
                 if a is None:
-                    self.client.add_currency_to_account(self.client.testnet_dd_account, borrowed_currency, gas_currency_code="LBR")
+                    self.client.add_currency_to_account(self.client.testnet_dd_account, borrowed_currency)
                     self.client.mint_coin(self.client.testnet_dd_account.address, int(amount*self.HOLDING_RATIO))
                 elif a < amount:
                     self.client.mint_coin(self.client.testnet_dd_account.address, int(amount*self.HOLDING_RATIO-a))
@@ -60,7 +60,6 @@ class LiquidateBorrowThread(Thread):
                 if not self.client.bank_is_published(self.client.testnet_dd_account.address_hex):
                     self.client.bank_publish(self.client.testnet_dd_account)
                 self.client.bank_enter(self.client.testnet_dd_account, int(amount*self.HOLDING_RATIO)-bank_amount, currency_code=borrowed_currency)
-            else:
-                self.client.bank_liquidate_borrow(self.client.testnet_dd_account, addr, borrowed_currency, collateral_currency, amount-1)
+            self.client.bank_liquidate_borrow(self.client.testnet_dd_account, addr, borrowed_currency, collateral_currency, amount-1)
 
 
