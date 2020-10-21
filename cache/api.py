@@ -258,6 +258,7 @@ class LiquidatorAPI():
 
         account = self.get_account(tx.get_sender())
         borrower = self.get_account(tx.get_borrower())
+
         if account.add_liquidate_borrow_to_liquidator(collateral_currency, value, self.token_infos) < 1:
             ret.append(account.address)
         if borrower.add_liquidate_borrow_to_borrower(collateral_currency, value, currency_code, tx.get_amount(), self.token_infos) < 1:
