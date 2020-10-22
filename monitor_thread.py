@@ -20,13 +20,9 @@ class MonitorThread(Thread):
                 accounts = liquidator_api.accounts
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
-                    try:
-                        index = self.client.bank_get_currency_index(currency_code=currency)
-                        currency_info = token_infos[index: index+2]
-                        self.assert_token_consistence(currency, currency_info)
-                    except Exception as e:
-                        print(e)
-                        print(currency, index, currency_info)
+                    index = self.client.bank_get_currency_index(currency_code=currency)
+                    currency_info = token_infos[index: index+2]
+                    self.assert_token_consistence(currency, currency_info)
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
             except Exception as e:
