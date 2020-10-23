@@ -4,7 +4,7 @@ from violas_client import Client
 from cache.util import new_mantissa
 
 class LiquidateBorrowThread(Thread):
-    HOLDING_RATIO = 100
+    HOLDING_RATIO = 10
     LIQUIDATE_LIMIT = 1_000_000
 
     def __init__(self, queue: Queue, url, faucet_file):
@@ -45,8 +45,7 @@ class LiquidateBorrowThread(Thread):
             collateral_currency = max_lock_currency
             amount = new_mantissa(borrow_value-collateral_value, token_info_stores.get_price(max_lock_currency))
             amount = min(amount, max_lock_balance)
-            amounts = self.client.bank_get_amounts()
-            bank_amount = amounts.get(borrowed_currency)
+            bank_amount = self.client.bank_get_amount(self.client.testnet_dd_account.address, borrowed_currency)
             if bank_amount is None or bank_amount < amount*self.HOLDING_RATIO:
                 a = self.client.get_balances(self.client.testnet_dd_account.address).get(borrowed_currency)
                 if a is None:
