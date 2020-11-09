@@ -92,11 +92,11 @@ class AccountBorrowAmounts():
         return value
 
 class AccountView():
-    def __init__(self, address):
+    def __init__(self, address, **kwargs):
         self.address = address
-        self.lock_amounts = AccountLockAmounts()
-        self.borrow_amounts = AccountBorrowAmounts()
-        self.health = sys.maxsize
+        self.lock_amounts = AccountLockAmounts(kwargs.get("lock_amounts"))
+        self.borrow_amounts = AccountBorrowAmounts(kwargs.get("borrow_amounts"))
+        self.health = kwargs.get("health",sys.maxsize)
 
     def to_json(self):
         return {
