@@ -48,3 +48,4 @@ toml==0.10.0              # via libra-core
 urllib3==1.25.8           # via requests
 bitarray==1.2.2
 flask
+psycopg2
