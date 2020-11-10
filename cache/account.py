@@ -94,8 +94,16 @@ class AccountBorrowAmounts():
 class AccountView():
     def __init__(self, address, **kwargs):
         self.address = address
-        self.lock_amounts = AccountLockAmounts(kwargs.get("lock_amounts"))
-        self.borrow_amounts = AccountBorrowAmounts(kwargs.get("borrow_amounts"))
+        lock_amounts = kwargs.get("lock_amounts")
+        if lock_amounts is not None:
+            self.lock_amounts = AccountLockAmounts(**lock_amounts)
+        else:
+            self.lock_amounts = AccountBorrowAmounts()
+        borrow_amounts = kwargs.get("borrow_amounts")
+        if borrow_amounts is not None:
+            self.borrow_amounts = AccountBorrowAmounts(**borrow_amounts)
+        else:
+            self.borrow_amounts = AccountBorrowAmounts()
         self.health = kwargs.get("health",sys.maxsize)
 
     def to_json(self):
