@@ -38,7 +38,7 @@ class ScannerThread(Thread):
     @staticmethod
     def convert_accounts_from_cache_to_db(cache_accounts):
         accounts = []
-        for account in cache_accounts:
+        for account in cache_accounts.values():
             a = {
                 "address": account.address,
                 "lock_amounts": account.lock_amounts.amounts,
