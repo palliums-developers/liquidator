@@ -98,7 +98,7 @@ class AccountView():
         if lock_amounts is not None:
             self.lock_amounts = AccountLockAmounts(**lock_amounts)
         else:
-            self.lock_amounts = AccountBorrowAmounts()
+            self.lock_amounts = AccountLockAmounts()
         borrow_amounts = kwargs.get("borrow_amounts")
         if borrow_amounts is not None:
             self.borrow_amounts = AccountBorrowAmounts(**borrow_amounts)
