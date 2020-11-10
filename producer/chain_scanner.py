@@ -107,7 +107,7 @@ class ScannerThread(Thread):
     def run(self):
         limit = 1000
         self.__class__.VERSION = self.height_table.get_height()
-        liquidator_api.accounts = self.convert_token_from_db_to_cache(self.account_table.get_all_accounts())
+        liquidator_api.accounts = self.convert_accounts_from_db_to_cache(self.account_table.get_all_accounts())
         liquidator_api.token_infos = self.convert_token_from_db_to_cache(self.token_table.get_all_tokens())
 
         while True:
@@ -125,7 +125,7 @@ class ScannerThread(Thread):
                 self.__class__.VERSION += len(txs)
                 if self.state == self.UPDATING and len(txs) < limit:
                     self.state = self.UPDATED
-                if self.__class__.VERSION - self.last_version >= 100000:
+                if self.__class__.VERSION - self.last_version >= 1_000_000:
                     accounts = self.convert_accounts_from_cache_to_db(liquidator_api.accounts)
                     self.account_table.keep_accounts(accounts)
                     tokens = self.convert_token_from_cache_to_db(liquidator_api.token_infos)
