@@ -101,6 +101,7 @@ class ScannerThread(Thread):
                           last_minute=info.get("last_minute"),
                           contract_value=info.get("contract_value"),
                           )
+            a.update_exchange_rate()
             tokens[currency_code] = a
         return tokens
 
