@@ -89,6 +89,7 @@ class ScannerThread(Thread):
             info = token[1]
             a = TokenInfo(total_supply=info.get("total_supply"),
                           total_reserves=info.get("total_reserves"),
+                          currency_code=currency_code,
                           total_borrows=info.get("total_borrows"),
                           borrow_index=info.get("borrow_index"),
                           oracle_price=info.get("oracle_price"),
