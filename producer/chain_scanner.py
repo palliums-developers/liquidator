@@ -133,8 +133,6 @@ class ScannerThread(Thread):
                     tokens = self.convert_token_from_cache_to_db(liquidator_api.token_infos)
                     self.token_table.keep_tokens(tokens)
                     self.height_table.set_height(self.__class__.VERSION)
-                    # liquidator_api.update_config(self.__class__.VERSION)
-                    # self.last_version = self.__class__.VERSION
             except Exception as e:
                 print("chain_scanner", traceback.print_exc())
                 print(self.__class__.VERSION)
