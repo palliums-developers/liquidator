@@ -3,6 +3,8 @@ from threading import Thread
 from violas_client import Client
 from cache.util import new_mantissa
 
+CHAIN_URL = "http://47.93.114.230:50001"
+
 class LiquidateBorrowThread(Thread):
     HOLDING_RATIO = 10
     LIQUIDATE_LIMIT = 1_000_000
