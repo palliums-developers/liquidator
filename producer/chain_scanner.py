@@ -116,8 +116,7 @@ class ScannerThread(Thread):
                 if len(txs) == 0:
                     continue
                 for index, tx in enumerate(txs):
-                    if tx.get_code_type() != CodeType.BLOCK_METADATA:
-                        print(tx.get_code_type(), tx.get_version())
+                    if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
                         addrs = liquidator_api.add_tx(tx)
                         if self.state == self.UPDATED:
                             if addrs is not None:

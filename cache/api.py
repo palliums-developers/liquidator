@@ -12,7 +12,7 @@ class LiquidatorAPI():
 
     def to_json(self):
         return {
-            "accounts": { addr: account.to_json() for addr, account in self.accounts.items()},
+            "accounts": {addr: account.to_json() for addr, account in self.accounts.items()},
             "token_infos": {currency: token.to_json() for currency, token in self.token_infos.items()},
         }
 
@@ -31,7 +31,7 @@ class LiquidatorAPI():
         return self.token_infos.get(currency_code)
 
     def get_account(self, addr) -> AccountView:
-        account = self.accounts.get(addr.upper())
+        account = self.accounts.get(addr)
         if account is None:
             account = AccountView(addr)
             self.accounts[addr] = account
