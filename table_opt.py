@@ -37,7 +37,6 @@ drop_height_table_sql = '''
 '''
 
 
-
 def create_table():
     db_opt = Base(dsn)
     db_opt.execute(create_account_table_sql)

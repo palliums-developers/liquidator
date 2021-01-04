@@ -111,12 +111,13 @@ class ScannerThread(Thread):
         liquidator_api.token_infos = self.convert_token_from_db_to_cache(self.token_table.get_all_tokens())
 
         while True:
-            try:
+            # try:
                 txs = self.client.get_transactions(self.__class__.VERSION, limit)
                 if len(txs) == 0:
                     continue
                 for index, tx in enumerate(txs):
                     if tx.get_code_type() != CodeType.BLOCK_METADATA:
+                        print(tx.get_code_type(), tx.get_version())
                         addrs = liquidator_api.add_tx(tx)
                         if self.state == self.UPDATED:
                             if addrs is not None:
@@ -131,9 +132,10 @@ class ScannerThread(Thread):
                     tokens = self.convert_token_from_cache_to_db(liquidator_api.token_infos)
                     self.token_table.keep_tokens(tokens)
                     self.height_table.set_height(self.__class__.VERSION)
-            except Exception as e:
-                print("chain_scanner", traceback.print_exc())
-                print(self.__class__.VERSION)
+            # except Exception as e:
+            #     print("chain_scanner", traceback.print_exc())
+            #     print(self.__class__.VERSION)
+            #
 
 
 

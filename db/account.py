@@ -1,6 +1,6 @@
 import json
 from db.base import Base
-from .const import dsn
+from db.const import dsn
 
 class AccountTable(Base):
     MAX_INSERT_NUM = 2
