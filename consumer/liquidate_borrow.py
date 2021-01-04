@@ -3,14 +3,15 @@ from threading import Thread
 from violas_client import Client
 from cache.util import new_mantissa
 from account import get_account
+from chain_client.client import CHAIN_URL, DD_ADDR
 from chain_client.client import Client as ChainClient
 
-CHAIN_URL = "http://47.93.114.230:50001"
 
 class LiquidateBorrowThread(Thread):
     HOLDING_RATIO = 10
     LIQUIDATE_LIMIT = 1_000_000
     MIN_MINT_AMOUNT = 2_000_000_000
+    MAX_OWN_AMOUNT = 1_000_000_000
     MIN_VLS_AMOUNT = 1_000_000
 
     def __init__(self, queue: Queue):
@@ -66,6 +67,13 @@ class LiquidateBorrowThread(Thread):
                     self.client.bank_publish(self.bank_account)
                 currency_amount = self.client.get_balance(borrowed_currency)
                 self.client.bank_enter(self.bank_account, currency_amount-100_000, currency_code=borrowed_currency)
+            cs = self.client.get_account_registered_currencies(self.bank_account.address_hex)
+            if collateral_currency not in cs:
+                self.client.add_currency_to_account(self.bank_account, collateral_currency)
             self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, amount-1)
+            amount = self.client.bank_get_amount(self.bank_account.address_hex, collateral_currency)
+            if amount > self.MAX_OWN_AMOUNT:
+                self.client.bank_exit(self.bank_account, collateral_currency, amount-100)
+                self.client.transfer_coin(self.bank_account, DD_ADDR, amount-100)
 
 

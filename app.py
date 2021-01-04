@@ -31,19 +31,19 @@ if __name__ == "__main__":
     scanner_thread = ScannerThread(unhealth_queue)
     scanner_thread.setDaemon(True)
     scanner_thread.start()
-    # while True:
-    #     time.sleep(2)
-    #     if scanner_thread.state == ScannerThread.UPDATED:
-    #         update_state_thread = CheckerThread(unhealth_queue)
-    #         update_state_thread.setDaemon(True)
-    #         update_state_thread.start()
-    #         liquidator_thread = LiquidateBorrowThread(unhealth_queue)
-    #         liquidator_thread.setDaemon(True)
-    #         liquidator_thread.start()
-    #         break
+    while True:
+        time.sleep(2)
+        if scanner_thread.state == ScannerThread.UPDATED:
+            update_state_thread = CheckerThread(unhealth_queue)
+            update_state_thread.setDaemon(True)
+            update_state_thread.start()
+            liquidator_thread = LiquidateBorrowThread(unhealth_queue)
+            liquidator_thread.setDaemon(True)
+            liquidator_thread.start()
+            break
 
-    # monitor_thread = MonitorThread()
-    # monitor_thread.setDaemon(True)
-    # monitor_thread.start()
+    monitor_thread = MonitorThread()
+    monitor_thread.setDaemon(True)
+    monitor_thread.start()
 
     app.run(host="0.0.0.0", port=9000, debug=False)
