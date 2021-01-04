@@ -3,6 +3,7 @@ import azure
 from violas_client import Wallet
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
+from http_client import Client as HttpClient
 
 CLIENT_ID = "90f023f9-82b6-4b93-beb6-561743f9af84"
 TENANT_ID = "d99eee11-8587-4c34-9201-38d5247df9c9"
@@ -26,6 +27,7 @@ def get_account():
         secret_client.set_secret(LIQUIDATOR_SECRET_NAME, secret)
     wallet = Wallet.new_from_mnemonic(secret)
     return wallet.new_account()
+
 
 if __name__ == "__main__":
     account = get_account()

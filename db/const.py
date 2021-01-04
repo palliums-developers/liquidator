@@ -1,4 +1,4 @@
-HOST="47.93.114.230"
+HOST="13.68.141.242"
 PORT="5006"
 USER="postgres"
 PASSWORD="liquidator-postgres"
