@@ -6,7 +6,6 @@ from queue import Queue
 from threading import Thread
 from violas_client import Client
 from cache.api import liquidator_api
-from conf.config import URL
 from violas_client.lbrtypes.bytecode import CodeType
 from db.account import AccountTable
 from db.token import TokenTable
@@ -14,7 +13,7 @@ from db.height import HeightTable
 from db.const import dsn
 from cache.account import AccountView
 from cache.token_info import TokenInfo
-
+from chain_client.client import CHAIN_URL
 
 class ScannerThread(Thread):
 
@@ -22,18 +21,17 @@ class ScannerThread(Thread):
     UPDATED = 1
     VERSION = 0
 
-    def __init__(self, queue: Queue, config):
+    def __init__(self, queue: Queue):
         global liquidator_api
         super(ScannerThread, self).__init__()
-        self.client = Client.new(URL)
+        self.client = Client.new(CHAIN_URL)
         self.queue = queue
         self.state = self.UPDATING
-        if config.get("version") is not None:
-            self.__class__.VERSION = config.get("version")
         self.last_version = self.__class__.VERSION
         self.account_table = AccountTable(dsn=dsn)
         self.token_table = TokenTable(dsn=dsn)
         self.height_table = HeightTable(dsn=dsn)
+        self.__class__.VERSION = self.height_table.get_height()
 
     @staticmethod
     def convert_accounts_from_cache_to_db(cache_accounts):

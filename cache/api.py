@@ -1,7 +1,6 @@
 from .token_info import TokenInfo
 from .account import AccountView
 from .util import mantissa_mul, mantissa_div, new_mantissa
-from conf.config import update_config
 from violas_client.banktypes.bytecode import CodeType as BankCodeType
 from violas_client.vlstypes.view import TransactionView
 from violas_client.oracle_client.bytecodes import CodeType as OracleCodType
@@ -18,7 +17,7 @@ class LiquidatorAPI():
         }
 
     @classmethod
-    def from_json(cls, json_value):
+    def from_json(cls, **json_value):
         ret = cls()
         accounts = json_value.get("accounts", dict())
         for addr, account in accounts.items():
@@ -377,12 +376,6 @@ class LiquidatorAPI():
             token = TokenInfo(currency_code=currency_code, oracle_price=price)
             self.token_infos[currency_code] = token
 
-    def update_config(self, version):
-        json_value = self.to_json()
-        json_value["version"] = version
-        update_config(json_value)
 
 
-from conf.config import config
-
-liquidator_api = LiquidatorAPI.from_json(config)
+liquidator_api = LiquidatorAPI.from_json()

@@ -1,16 +1,16 @@
 import time
 import traceback
 from threading import Thread
-from conf.config import URL
 from violas_client import Client
 from cache.api import liquidator_api
+from chain_client.client import CHAIN_URL
 
 class MonitorThread(Thread):
     INTERVAL = 60
 
     def __init__(self):
         super().__init__()
-        self.client = Client.new(URL)
+        self.client = Client.new(CHAIN_URL)
 
     def run(self):
         while True:
