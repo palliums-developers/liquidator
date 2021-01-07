@@ -1,21 +1,27 @@
-import os
 import azure
 from violas_client import Wallet
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
+from chain_client import Client as ChainClient
 from http_client import Client as HttpClient
-
-CLIENT_ID = "90f023f9-82b6-4b93-beb6-561743f9af84"
-TENANT_ID = "d99eee11-8587-4c34-9201-38d5247df9c9"
-SECRET = "eRvgvZxMh_v27EWR5-Z-C2DWo~yc_78jfR"
-VAULT_NAME = "violas-test-liquidator"
-LIQUIDATOR_SECRET_NAME = "liquidator-secret"
+from testnet import *
+from db import DBManager
+from violas_client import Client as ViolasClient
 
 os.environ["AZURE_CLIENT_ID"] = CLIENT_ID
 os.environ["AZURE_TENANT_ID"] = TENANT_ID
 os.environ["AZURE_CLIENT_SECRET"] = SECRET
 
-def get_account():
+def create_database_manager():
+    return DBManager(dsn)
+
+def create_http_client():
+    return HttpClient(HTTP_SERVER)
+
+def create_violas_client():
+    return ViolasClient.new(CHAIN_URL)
+
+def get_liquidator_account():
     credential = DefaultAzureCredential()
     secret_client = SecretClient(vault_url=f"https://{VAULT_NAME}.vault.azure.net/", credential=credential)
     try:
@@ -28,8 +34,6 @@ def get_account():
     wallet = Wallet.new_from_mnemonic(secret)
     return wallet.new_account()
 
-
-if __name__ == "__main__":
-    account = get_account()
-    print(account.address_hex)
-
+def mint_coin_to_liquidator_account(liquidator_account, currency_code, amount):
+    client = ChainClient(CHAIN_URL, DD_ADDR, HTTP_SERVER)
+    return client.mint_coin(liquidator_account, currency_code, amount)

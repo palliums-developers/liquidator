@@ -1,27 +1,27 @@
 import time
-from cache.api import liquidator_api
+from bank import Bank
 from violas_client import Client, Wallet
 
 def add_tx(account_address, seq):
     tx = client.get_account_transaction(account_address, seq)
-    liquidator_api.add_tx(tx)
+    Bank().add_tx(tx)
 
 def assert_account_consistence(address, tokens):
     if isinstance(address, bytes):
         address = address.hex()
     #借款数据
-    borrows = liquidator_api.accounts[address].borrow_amounts.amounts.get("USD")
+    borrows = Bank().accounts[address].borrow_amounts.amounts.get("USD")
     if borrows is None:
         assert tokens.borrows[0].principal == 0
     else:
-        assert tokens.borrows[0].principal == liquidator_api.accounts[address].borrow_amounts.amounts["USD"][0]
-        assert tokens.borrows[0].interest_index == liquidator_api.accounts[address].borrow_amounts.amounts["USD"][1]
+        assert tokens.borrows[0].principal == Bank().accounts[address].borrow_amounts.amounts["USD"][0]
+        assert tokens.borrows[0].interest_index == Bank().accounts[address].borrow_amounts.amounts["USD"][1]
     #存款数据
-    print(tokens.ts[1].value, liquidator_api.accounts[address].lock_amounts.amounts["USD"])
-    assert tokens.ts[1].value == liquidator_api.accounts[address].lock_amounts.amounts["USD"]
+    print(tokens.ts[1].value, Bank().accounts[address].lock_amounts.amounts["USD"])
+    assert tokens.ts[1].value == Bank().accounts[address].lock_amounts.amounts["USD"]
 
 def assert_token_consistence(currency, token_infos):
-    local_info = liquidator_api.get_token_info(currency)
+    local_info = Bank().get_token_info(currency)
     assert token_infos[1].total_supply == local_info.total_supply
     assert token_infos[0].total_reserves == local_info.total_reserves
     assert token_infos[0].total_borrows == local_info.total_borrows
@@ -50,8 +50,8 @@ def publish_compound_module():
     seq = client.bank_update_rate_model(a1, "USD", 0.2, 0.3, 0.4, 0.9)
     add_tx(a1.address, seq)
     price = client.get_account_state(client.ORACLE_OWNER_ADDRESS).oracle_get_exchange_rate("USD")
-    liquidator_api.set_oracle_price("USD", price.value)
-    liquidator_api.set_price("USD", price.value)
+    Bank().set_oracle_price("USD", price.value)
+    Bank().set_price("USD", price.value)
     return a1.address
 
 client = Client("bj_testnet")

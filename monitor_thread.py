@@ -1,23 +1,23 @@
 import time
 import traceback
 from threading import Thread
-from violas_client import Client
-from cache.api import liquidator_api
-from chain_client.client import CHAIN_URL
+from network import create_violas_client
+from bank import Bank
 
 class MonitorThread(Thread):
     INTERVAL = 60
 
     def __init__(self):
         super().__init__()
-        self.client = Client.new(CHAIN_URL)
+        self.client = create_violas_client()
+        self.bank = Bank()
 
     def run(self):
         while True:
             time.sleep(self.INTERVAL)
             try:
                 token_infos = self.client.get_account_state(self.client.get_bank_owner_address()).get_token_info_store_resource(accrue_interest=False).tokens
-                accounts = liquidator_api.accounts
+                accounts = self.bank.accounts
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
                     index = self.client.bank_get_currency_index(currency_code=currency)
@@ -34,7 +34,7 @@ class MonitorThread(Thread):
         i = 0
         while len(tokens.borrows) > i:
             currency = self.client.bank_get_currency_code(i)
-            borrows = liquidator_api.accounts[address].borrow_amounts.amounts.get(currency)
+            borrows = self.bank.accounts[address].borrow_amounts.amounts.get(currency)
             if borrows is None:
                 assert tokens.borrows[0].principal == 0
             else:
@@ -45,16 +45,15 @@ class MonitorThread(Thread):
         i = 0
         while len(tokens.borrows) > i:
             currency = self.client.bank_get_currency_code(i)
-            locks = liquidator_api.accounts[address].lock_amounts.amounts
+            locks = self.bank.accounts[address].lock_amounts.amounts
             value = locks.get(currency)
             if value is None:
                 value = 0
             #存款数据
             assert tokens.ts[i+1].value == value
 
-    @staticmethod
-    def assert_token_consistence(currency, token_infos):
-        local_info = liquidator_api.get_token_info(currency)
+    def assert_token_consistence(self, currency, token_infos):
+        local_info = self.bank.get_token_info(currency)
         assert token_infos[1].total_supply == local_info.total_supply
         assert token_infos[0].total_reserves == local_info.total_reserves
         assert token_infos[0].total_borrows == local_info.total_borrows
@@ -66,7 +65,3 @@ class MonitorThread(Thread):
         assert token_infos[0].rate_jump_multiplier == local_info.rate_jump_multiplier
         assert token_infos[0].rate_kink == local_info.rate_kink
         assert token_infos[0].last_minute == local_info.last_minute
-
-# monitor_thread = MonitorThread()
-# monitor_thread.setDaemon(False)
-# monitor_thread.start()

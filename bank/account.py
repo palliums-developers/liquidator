@@ -1,16 +1,15 @@
 import sys
-from enum import IntEnum
-
+from dataclasses import dataclass
+from typing import Dict, Tuple
 from .util import mantissa_div, mantissa_mul
-from violas_client.banktypes.bytecode import CodeType
-from violas_client.vlstypes.view import TransactionView
+from .base import Base
 
-class AccountLockAmounts():
-    def __init__(self, **kwargs):
-        '''
-            币名 = amount
-        '''
-        self.amounts = kwargs
+@dataclass(init=False)
+class AccountLockAmounts(Base):
+    amounts: Dict[str, int]
+
+    def __init__(self):
+        self.amounts = {}
 
     def add_amount(self, currency_code, amount, exchange_rate):
         amount = mantissa_div(amount, exchange_rate)
@@ -47,17 +46,14 @@ class AccountLockAmounts():
             value += self.get_collateral_value(amount, exchange_rate, price, collateral_factor)
         return value
 
+@dataclass(init=False)
+class AccountBorrowAmounts(Base):
 
-class AccountBorrowAmounts():
-    def __init__(self, **kwargs):
-        '''
-        {
-            currency_code:(amount, interest_index),
-            ...
-        }
-        :param amounts:
-        '''
-        self.amounts = kwargs
+    # currency_code:(amount, interest_index),
+    amounts: Dict[str, Tuple[int, int]]
+
+    def __init__(self):
+        self.amounts = {}
 
     def add_amount(self, currency_code, amount, interest_index):
         old_amount = self.borrow_balance(currency_code, interest_index)
@@ -91,44 +87,26 @@ class AccountBorrowAmounts():
             value += self.get_borrow_value(amount, borrow_index, cur_borrow_index, price)
         return value
 
-class AccountView():
-    def __init__(self, address, **kwargs):
+@dataclass(init=False)
+class AccountView(Base):
+    PREFIX = "account"
+
+    address: str
+    lock_amounts: AccountLockAmounts
+    borrow_amounts: AccountBorrowAmounts
+    health: int
+
+    def __init__(self, address, lock_amounts=None, borrow_amounts=None, health=None):
         self.address = address
-        lock_amounts = kwargs.get("lock_amounts")
-        if lock_amounts is not None:
-            self.lock_amounts = AccountLockAmounts(**lock_amounts)
-        else:
-            self.lock_amounts = AccountLockAmounts()
-        borrow_amounts = kwargs.get("borrow_amounts")
-        if borrow_amounts is not None:
-            self.borrow_amounts = AccountBorrowAmounts(**borrow_amounts)
-        else:
-            self.borrow_amounts = AccountBorrowAmounts()
-        self.health = kwargs.get("health",sys.maxsize)
-
-    def to_json(self):
-        return {
-            "address": self.address,
-            "lock_amounts": self.lock_amounts.amounts,
-            "borrow_amounts": self.borrow_amounts.amounts,
-            "health": self.health
-        }
-
-    @classmethod
-    def from_json(cls, addr, json_value):
-        ret = cls(addr)
-        lock_amounts = json_value.get("lock_amounts", dict())
-        borrow_amounts = json_value.get("borrow_amounts", dict())
-        ret.lock_amounts = AccountLockAmounts(**lock_amounts)
-        ret.borrow_amounts = AccountBorrowAmounts(**borrow_amounts)
-        return ret
+        self.lock_amounts = lock_amounts or AccountLockAmounts()
+        self.borrow_amounts = borrow_amounts or AccountBorrowAmounts()
+        self.health = health or sys.maxsize
 
     def add_borrow(self, currency_code, amount, token_infos):
         borrow_index = token_infos.get(currency_code).borrow_index
         self.borrow_amounts.add_amount(currency_code, amount, borrow_index)
         self.update_health_state(token_infos)
         return self.health
-
 
     def add_lock(self, currency_code, amount, token_infos):
         exchange_rate = token_infos.get(currency_code).exchange_rate

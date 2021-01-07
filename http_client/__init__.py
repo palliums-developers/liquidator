@@ -4,7 +4,6 @@ import requests
 
 from dataclasses import dataclass
 
-HTTP_SERVER="https://api4.violas.io/1.0/violas/mint"
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 5.0
 DEFAULT_TIMEOUT_SECS: float = 30.0
@@ -38,12 +37,12 @@ class Retry:
 class Client:
     def __init__(
         self,
-        server_url: str = None,
+        server_url: str,
         session: typing.Optional[requests.Session] = None,
         timeout: typing.Optional[typing.Tuple[float, float]] = None,
         retry: typing.Optional[Retry] = None,
     ) -> None:
-        self._url: str = server_url or HTTP_SERVER
+        self._url: str = server_url
         self._session: requests.Session = session or requests.Session()
         self._timeout: typing.Tuple[float, float] = timeout or (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS)
         self._retry: Retry = retry or Retry(5, 0.2, StaleResponseError)

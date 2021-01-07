@@ -1,36 +1,31 @@
 import time
 import copy
+from dataclasses import dataclass
+from .base import Base
 
 from .util import new_mantissa, safe_sub, mantissa_mul, mantissa_div
 
-class TokenInfo():
-    def __init__(self, **kwargs):
-        self.currency_code = kwargs.get("currency_code")
-        self.total_supply = kwargs.get("total_supply", 0)
-        self.total_reserves = kwargs.get("total_reserves", 0)
-        self.total_borrows = kwargs.get("total_borrows", 0)
-        self.borrow_index = kwargs.get("borrow_index")
+@dataclass
 
-        self.oracle_price = kwargs.get("oracle_price")
-        self.price = kwargs.get("price")
+class TokenInfo(Base):
+    PREFIX = "token"
 
-        self.collateral_factor = kwargs.get("collateral_factor")
-        self.base_rate = kwargs.get("base_rate")
-        self.rate_multiplier = kwargs.get("rate_multiplier")
-        self.rate_jump_multiplier = kwargs.get("rate_jump_multiplier")
-        self.rate_kink = kwargs.get("rate_kink")
-        self.last_minute = kwargs.get("last_minute")
+    currency_code: str
+    price: int = 0
+    total_supply: int = 0
+    total_reserves: int = 0
+    total_borrows: int = 0
+    oracle_price: int = None
+    collateral_factor: int = None
+    base_rate: int = None
+    rate_multiplier: int = None
+    rate_jump_multiplier: int = None
+    rate_kink: int = None
+    last_minute: int = None
+    # resource struct T
+    contract_value: int = 0
+    borrow_index: int = new_mantissa(1, 1)
 
-        # resource struct T
-        self.contract_value = kwargs.get("contract_value")
-
-
-    def to_json(self):
-        return self.__dict__
-
-    @classmethod
-    def from_json(cls, json_value):
-        return cls(**json_value)
 
     @classmethod
     def empty(cls, **kwargs):

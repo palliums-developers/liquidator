@@ -1,31 +1,33 @@
+import dataclasses
+from typing import Dict
+from .base import Base
 from .token_info import TokenInfo
 from .account import AccountView
 from .util import mantissa_mul, mantissa_div, new_mantissa
 from violas_client.banktypes.bytecode import CodeType as BankCodeType
 from violas_client.vlstypes.view import TransactionView
 from violas_client.oracle_client.bytecodes import CodeType as OracleCodType
+from network import create_database_manager
 
-class LiquidatorAPI():
+@dataclasses.dataclass(init=False)
+class Bank(Base):
+    _instance = None
+
+    height: int
+    accounts: Dict[str, AccountView]
+    token_infos: Dict[str, TokenInfo]
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self):
-        self.accounts = dict()
-        self.token_infos = dict()
-
-    def to_json(self):
-        return {
-            "accounts": {addr: account.to_json() for addr, account in self.accounts.items()},
-            "token_infos": {currency: token.to_json() for currency, token in self.token_infos.items()},
-        }
-
-    @classmethod
-    def from_json(cls, **json_value):
-        ret = cls()
-        accounts = json_value.get("accounts", dict())
-        for addr, account in accounts.items():
-            ret.accounts[addr] = AccountView.from_json(addr, account)
-        token_infos = json_value.get("token_infos", dict())
-        for currency, token_info in token_infos.items():
-            ret.token_infos[currency] = TokenInfo.from_json(token_info)
-        return ret
+        if not hasattr(self, "height"):
+            self.height = 0
+            self.accounts = {}
+            self.token_infos = {}
+            self.db_manage = create_database_manager()
 
     def get_token_info(self, currency_code) -> TokenInfo:
         return self.token_infos.get(currency_code)
@@ -376,6 +378,19 @@ class LiquidatorAPI():
             token = TokenInfo(currency_code=currency_code, oracle_price=price)
             self.token_infos[currency_code] = token
 
+    def update_to_db(self):
+        for k, v in self.accounts.items():
+            self.db_manage.set(k, v)
+        for k, v in self.token_infos.items():
+            self.db_manage.set(k, v)
+        self.db_manage.set("height", self.height)
 
+    def update_from_db(self):
+        accounts = self.db_manage.gets(AccountView)
+        tokens = self.db_manage.gets(TokenInfo)
+        for account in accounts:
+            self.accounts[account.address] = account
+        for token in tokens:
+            self.token_infos[token.currency_code] = token
+        self.height = self.db_manage.get("height", int, 0)
 
-liquidator_api = LiquidatorAPI.from_json()

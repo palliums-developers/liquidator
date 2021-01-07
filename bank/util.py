@@ -1,5 +1,3 @@
-
-
 def new_mantissa(a, b):
     c = a << 64
     d = b << 32

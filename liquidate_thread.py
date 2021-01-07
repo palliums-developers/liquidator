@@ -1,11 +1,15 @@
 from queue import Queue
 from threading import Thread
 from violas_client import Client
-from cache.util import new_mantissa
-from account import get_account
-from chain_client.client import CHAIN_URL, DD_ADDR
-from chain_client.client import Client as ChainClient
-
+from bank.util import new_mantissa
+from network import (
+    create_http_client,
+    create_violas_client,
+    get_liquidator_account,
+    mint_coin_to_liquidator_account,
+    DEFAULT_COIN_NAME,
+    DD_ADDR
+)
 
 class LiquidateBorrowThread(Thread):
     HOLDING_RATIO = 10
@@ -17,9 +21,8 @@ class LiquidateBorrowThread(Thread):
     def __init__(self, queue: Queue):
         super(LiquidateBorrowThread, self).__init__()
         self.queue = queue
-        self.client = Client.new(CHAIN_URL)
-        self.chain_client = ChainClient()
-        self.bank_account = get_account()
+        self.client = create_violas_client()
+        self.bank_account = get_liquidator_account()
 
     def run(self) -> None:
         while True:
@@ -30,8 +33,8 @@ class LiquidateBorrowThread(Thread):
                 print(e)
 
     def liquidate_borrow(self, addr):
-        if self.client.get_balance(self.bank_account.address_hex, "VLS") < self.MIN_VLS_AMOUNT:
-            self.chain_client.mint_coin(self.bank_account, "VLS", self.MIN_MINT_AMOUNT)
+        if self.client.get_balance(self.bank_account.address_hex, DEFAULT_COIN_NAME) < self.MIN_VLS_AMOUNT:
+            mint_coin_to_liquidator_account(self.bank_account, DEFAULT_COIN_NAME, self.MIN_MINT_AMOUNT)
             return
         collateral_value = self.client.bank_get_total_collateral_value(addr)
         borrow_value = self.client.bank_get_total_borrow_value(addr)
@@ -61,7 +64,7 @@ class LiquidateBorrowThread(Thread):
             if bank_amount is None or bank_amount < amount*self.HOLDING_RATIO:
                 a = self.client.get_balances(self.bank_account.address).get(borrowed_currency)
                 if a is None or a < amount:
-                    self.chain_client.mint_coin(self.bank_account, max(self.MIN_MINT_AMOUNT, int(amount*self.HOLDING_RATIO)))
+                    mint_coin_to_liquidator_account(self.bank_account, max(self.MIN_MINT_AMOUNT, int(amount*self.HOLDING_RATIO)))
                     return
                 if not self.client.bank_is_published(self.bank_account.address_hex):
                     self.client.bank_publish(self.bank_account)
