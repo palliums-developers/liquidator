@@ -23,6 +23,7 @@ class Base:
         params = {}
         for key, type in cls.__dataclass_fields__.items():
             value = json.get(key)
+            type = type.type
             if hasattr(type, "__dataclass_fields__"):
                 params[key] = type.from_json(value)
             else:

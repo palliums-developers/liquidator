@@ -12,10 +12,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    ret = {
-        "info": Bank().to_json()
-    }
-    return ret
+    return Bank.to_json()
 
 
 if __name__ == "__main__":

@@ -8,8 +8,8 @@ from .base import Base
 class AccountLockAmounts(Base):
     amounts: Dict[str, int]
 
-    def __init__(self):
-        self.amounts = {}
+    def __init__(self, amounts=None):
+        self.amounts = amounts or {}
 
     def add_amount(self, currency_code, amount, exchange_rate):
         amount = mantissa_div(amount, exchange_rate)
@@ -52,8 +52,8 @@ class AccountBorrowAmounts(Base):
     # currency_code:(amount, interest_index),
     amounts: Dict[str, Tuple[int, int]]
 
-    def __init__(self):
-        self.amounts = {}
+    def __init__(self, amounts=None):
+        self.amounts = amounts or {}
 
     def add_amount(self, currency_code, amount, interest_index):
         old_amount = self.borrow_balance(currency_code, interest_index)

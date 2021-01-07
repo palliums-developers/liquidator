@@ -14,7 +14,6 @@ class MonitorThread(Thread):
 
     def run(self):
         while True:
-            time.sleep(self.INTERVAL)
             try:
                 token_infos = self.client.get_account_state(self.client.get_bank_owner_address()).get_token_info_store_resource(accrue_interest=False).tokens
                 accounts = self.bank.accounts
@@ -25,6 +24,7 @@ class MonitorThread(Thread):
                     self.assert_token_consistence(currency, currency_info)
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
+                time.sleep(self.INTERVAL)
             except Exception as e:
                 print("monitor_thread", traceback.print_exc())
 

@@ -393,4 +393,5 @@ class Bank(Base):
         for token in tokens:
             self.token_infos[token.currency_code] = token
         self.height = self.db_manage.get("height", int, 0)
+        # print(self.accounts["6c1dd50f35f120061babc2814cf9378b"].borrow_amounts, type(self.accounts["6c1dd50f35f120061babc2814cf9378b"].borrow_amounts))
 
