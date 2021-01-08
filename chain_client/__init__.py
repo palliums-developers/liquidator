@@ -5,7 +5,7 @@ from violas_client import Client as ViolasClient
 from http_client import Client as HttpClient
 
 class Client:
-    REQUEST_INTERVAL = 60
+    REQUEST_INTERVAL = 60*60
 
     def __init__(self, chain_url, dd_addr, create_child_vasp_url):
         url = chain_url
@@ -39,10 +39,10 @@ class Client:
     def has_apply_request(self, currency_code):
         last_time = self._apply_recodes.get(currency_code)
         if last_time is None:
-            print(f"Already has apply to {currency_code}, time: {last_time}")
             return False
         cur_time = int(time.time())
         if cur_time - last_time > self.REQUEST_INTERVAL:
+            print(f"Specified time not mint {currency_code}, time: {last_time}")
             self._apply_recodes.pop(currency_code)
             return False
         return True

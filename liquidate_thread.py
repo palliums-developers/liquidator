@@ -1,9 +1,7 @@
 from queue import Queue
 from threading import Thread
-from violas_client import Client
 from bank.util import new_mantissa
 from network import (
-    create_http_client,
     create_violas_client,
     get_liquidator_account,
     mint_coin_to_liquidator_account,
@@ -14,9 +12,9 @@ from network import (
 class LiquidateBorrowThread(Thread):
     HOLDING_RATIO = 10
     LIQUIDATE_LIMIT = 1_000_000
-    MIN_MINT_AMOUNT = 2_000_000_000
-    MAX_OWN_AMOUNT = 1_000_000_000
-    MIN_VLS_AMOUNT = 1_000_000
+    MIN_MINT_AMOUNT = 200_000_000
+    MAX_OWN_AMOUNT = 100_000_000
+    MIN_VLS_AMOUNT = 1000
 
     def __init__(self, queue: Queue):
         super(LiquidateBorrowThread, self).__init__()
@@ -64,7 +62,7 @@ class LiquidateBorrowThread(Thread):
             if bank_amount is None or bank_amount < amount*self.HOLDING_RATIO:
                 a = self.client.get_balances(self.bank_account.address).get(borrowed_currency)
                 if a is None or a < amount:
-                    mint_coin_to_liquidator_account(self.bank_account, max(self.MIN_MINT_AMOUNT, int(amount*self.HOLDING_RATIO)))
+                    mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, max(self.MIN_MINT_AMOUNT, int(amount*self.HOLDING_RATIO)))
                     return
                 if not self.client.bank_is_published(self.bank_account.address_hex):
                     self.client.bank_publish(self.bank_account)

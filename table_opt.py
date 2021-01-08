@@ -22,6 +22,6 @@ def drop_table():
     db_opt.execute(drop_table_sql)
 
 if __name__ == "__main__":
-    # drop_table()
+    drop_table()
     create_table()
 

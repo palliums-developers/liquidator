@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return Bank.to_json()
+    return Bank().to_json()
 
 
 if __name__ == "__main__":
