@@ -41,7 +41,7 @@ class AccountLockAmounts(Base):
         for currency, amount in self.amounts.items():
             info = token_infos.get(currency)
             collateral_factor = info.collateral_factor
-            exchange_rate = info.exchange_rate
+            exchange_rate = info.get_exchange_rate()
             price = info.price
             value += self.get_collateral_value(amount, exchange_rate, price, collateral_factor)
         return value
@@ -109,13 +109,13 @@ class AccountView(Base):
         return self.health
 
     def add_lock(self, currency_code, amount, token_infos):
-        exchange_rate = token_infos.get(currency_code).exchange_rate
+        exchange_rate = token_infos.get(currency_code).get_exchange_rate()
         self.lock_amounts.add_amount(currency_code, amount, exchange_rate)
         self.update_health_state(token_infos)
         return self.health
 
     def add_redeem(self, currency_code, amount, token_infos):
-        exchange_rate = token_infos.get(currency_code).exchange_rate
+        exchange_rate = token_infos.get(currency_code).get_exchange_rate()
         self.lock_amounts.reduce_amount(currency_code, amount, exchange_rate)
         self.update_health_state(token_infos)
         return self.health
@@ -127,7 +127,7 @@ class AccountView(Base):
         return self.health
     
     def add_liquidate_borrow_to_liquidator(self, collateral_currency_code, collateral_amount, token_infos):
-        exchange_rate = token_infos.get(collateral_currency_code).exchange_rate
+        exchange_rate = token_infos.get(collateral_currency_code).get_exchange_rate()
         self.lock_amounts.add_amount(collateral_currency_code, collateral_amount, exchange_rate)
         self.update_health_state(token_infos)
         return self.health

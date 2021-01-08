@@ -36,10 +36,10 @@ class MonitorThread(Thread):
             currency = self.client.bank_get_currency_code(i)
             borrows = self.bank.accounts[address].borrow_amounts.amounts.get(currency)
             if borrows is None:
-                assert tokens.borrows[0].principal == 0
+                assert tokens.borrows[i].principal == 0
             else:
-                assert tokens.borrows[0].principal == borrows[0]
-                assert tokens.borrows[0].interest_index == borrows[1]
+                assert tokens.borrows[i].principal == borrows[0]
+                assert tokens.borrows[i].interest_index == borrows[1]
             i += 2
 
         i = 0

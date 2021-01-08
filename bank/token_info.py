@@ -93,6 +93,11 @@ class TokenInfo(Base):
         self.exchange_rate = new_mantissa(self.contract_value + self.total_borrows - self.total_reserves, self.total_supply)
         return self.exchange_rate
 
+    def get_exchange_rate(self):
+        if hasattr(self, "exchange_rate"):
+            return self.exchange_rate
+        return self.update_exchange_rate()
+
 
     def add_lock(self, tx):
         amount = tx.get_amount()

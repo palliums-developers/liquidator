@@ -30,7 +30,6 @@ class ScannerThread(Thread):
             if len(txs) == 0:
                 time.sleep(1)
                 continue
-
             for index, tx in enumerate(txs):
                 if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
                     addrs = self.bank.add_tx(tx)
@@ -41,6 +40,6 @@ class ScannerThread(Thread):
             self.bank.height += len(txs)
             if self.state == self.UPDATING and len(txs) < limit:
                 self.state = self.UPDATED
-            if self.bank.height - db_height >= 1_000_000:
+            if self.bank.height - db_height >= 1_000:
                 self.bank.update_to_db()
                 db_height = self.bank.height

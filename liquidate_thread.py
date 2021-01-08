@@ -10,10 +10,9 @@ from network import (
 )
 
 class LiquidateBorrowThread(Thread):
-    HOLDING_RATIO = 10
-    LIQUIDATE_LIMIT = 1_000_000
-    MIN_MINT_AMOUNT = 200_000_000
-    MAX_OWN_AMOUNT = 100_000_000
+    LIQUIDATE_LIMIT = 1_000
+    MIN_MINT_AMOUNT = 20_000_000
+    MAX_OWN_AMOUNT = 10_000_000
     MIN_VLS_AMOUNT = 1000
 
     def __init__(self, queue: Queue):
@@ -59,10 +58,10 @@ class LiquidateBorrowThread(Thread):
             amount = new_mantissa(borrow_value-collateral_value, token_info_stores.get_price(max_lock_currency))
             amount = min(amount, max_lock_balance)
             bank_amount = self.client.bank_get_amount(self.bank_account.address_hex, borrowed_currency)
-            if bank_amount is None or bank_amount < amount*self.HOLDING_RATIO:
+            if bank_amount is None or bank_amount < amount:
                 a = self.client.get_balances(self.bank_account.address).get(borrowed_currency)
                 if a is None or a < amount:
-                    mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, max(self.MIN_MINT_AMOUNT, int(amount*self.HOLDING_RATIO)))
+                    mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, max(self.MIN_MINT_AMOUNT, int(amount)))
                     return
                 if not self.client.bank_is_published(self.bank_account.address_hex):
                     self.client.bank_publish(self.bank_account)

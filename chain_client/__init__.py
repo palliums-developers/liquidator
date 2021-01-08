@@ -6,12 +6,12 @@ from http_client import Client as HttpClient
 
 class Client:
     REQUEST_INTERVAL = 60*60
+    _apply_recodes = {}
 
     def __init__(self, chain_url, dd_addr, create_child_vasp_url):
         url = chain_url
         self._dd_addr = dd_addr
         self._client = ViolasClient.new(url)
-        self._apply_recodes = {}
         self._http_client = HttpClient(create_child_vasp_url)
 
     def mint_coin(self, account, currency_code, amount):
@@ -33,6 +33,7 @@ class Client:
                 "state":"start"
             }
             self._client.transfer_coin(account, self._dd_addr, 1, data=json.dumps(data), currency_code="VLS")
+            self._apply_recodes[currency_code] = int(time.time())
             return True
         return False
 
