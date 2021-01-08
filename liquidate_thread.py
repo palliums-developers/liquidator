@@ -24,12 +24,12 @@ class LiquidateBorrowThread(Thread):
 
     def run(self) -> None:
         while True:
-            try:
+            # try:
                 addr = self.queue.get()
                 self.liquidate_borrow(addr)
-            except Exception as e:
-                print("liquidator_thread", e)
-                time.sleep(2)
+            # except Exception as e:
+            #     print("liquidator_thread", e)
+            #     time.sleep(2)
 
 
     def liquidate_borrow(self, addr):
@@ -68,7 +68,7 @@ class LiquidateBorrowThread(Thread):
                     return
                 if not self.client.bank_is_published(self.bank_account.address_hex):
                     self.client.bank_publish(self.bank_account)
-                currency_amount = self.client.get_balance(self.bank_account.address_hex)
+                currency_amount = self.client.get_balance(self.bank_account.address_hex, currency=borrowed_currency)
                 self.client.bank_enter(self.bank_account, currency_amount-100_000, currency_code=borrowed_currency)
             cs = self.client.get_account_registered_currencies(self.bank_account.address_hex)
             if collateral_currency not in cs:
