@@ -1,3 +1,4 @@
+import time
 from queue import Queue
 from threading import Thread
 from bank.util import new_mantissa
@@ -27,7 +28,9 @@ class LiquidateBorrowThread(Thread):
                 addr = self.queue.get()
                 self.liquidate_borrow(addr)
             except Exception as e:
-                print(e)
+                print("liquidator_thread", e)
+                time.sleep(2)
+
 
     def liquidate_borrow(self, addr):
         if self.client.get_balance(self.bank_account.address_hex, DEFAULT_COIN_NAME) < self.MIN_VLS_AMOUNT:

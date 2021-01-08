@@ -26,20 +26,24 @@ class ScannerThread(Thread):
         db_height = self.bank.height
 
         while True:
-            txs = self.client.get_transactions(self.bank.height, limit)
-            if len(txs) == 0:
-                time.sleep(1)
-                continue
-            for index, tx in enumerate(txs):
-                if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
-                    addrs = self.bank.add_tx(tx)
-                    if self.state == self.UPDATED:
-                        if addrs is not None:
-                            for addr in addrs:
-                                self.queue.put(addr)
-            self.bank.height += len(txs)
-            if self.state == self.UPDATING and len(txs) < limit:
-                self.state = self.UPDATED
-            if self.bank.height - db_height >= 1_000:
-                self.bank.update_to_db()
-                db_height = self.bank.height
+            try:
+                txs = self.client.get_transactions(self.bank.height, limit)
+                if len(txs) == 0:
+                    time.sleep(1)
+                    continue
+                for index, tx in enumerate(txs):
+                    if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
+                        addrs = self.bank.add_tx(tx)
+                        if self.state == self.UPDATED:
+                            if addrs is not None:
+                                for addr in addrs:
+                                    self.queue.put(addr)
+                self.bank.height += len(txs)
+                if self.state == self.UPDATING and len(txs) < limit:
+                    self.state = self.UPDATED
+                if self.bank.height - db_height >= 1_000:
+                    self.bank.update_to_db()
+                    db_height = self.bank.height
+            except Exception as e:
+                print("scan_thread", e)
+                time.sleep(2)

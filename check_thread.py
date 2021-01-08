@@ -22,4 +22,5 @@ class CheckerThread(Thread):
                 self.latest_update_time = cur_time
             except Exception as e:
                 import traceback
+                time.sleep(2)
                 print("check_thread", traceback.print_exc())

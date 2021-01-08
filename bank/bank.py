@@ -27,7 +27,6 @@ class Bank(Base):
             self.height = 0
             self.accounts = {}
             self.token_infos = {}
-            self.db_manage = create_database_manager()
 
     def get_token_info(self, currency_code) -> TokenInfo:
         return self.token_infos.get(currency_code)
@@ -379,19 +378,21 @@ class Bank(Base):
             self.token_infos[currency_code] = token
 
     def update_to_db(self):
+        db_manage = create_database_manager()
         for k, v in self.accounts.items():
-            self.db_manage.set(k, v)
+            db_manage.set(k, v)
         for k, v in self.token_infos.items():
-            self.db_manage.set(k, v)
-        self.db_manage.set("height", self.height)
+            db_manage.set(k, v)
+        db_manage.set("height", self.height)
 
     def update_from_db(self):
-        accounts = self.db_manage.gets(AccountView)
-        tokens = self.db_manage.gets(TokenInfo)
+        db_manage = create_database_manager()
+        accounts = db_manage.gets(AccountView)
+        tokens = db_manage.gets(TokenInfo)
         for account in accounts:
             self.accounts[account.address] = account
         for token in tokens:
             self.token_infos[token.currency_code] = token
-        self.height = self.db_manage.get("height", int, 0)
+        self.height = db_manage.get("height", int, 0)
         # print(self.accounts["6c1dd50f35f120061babc2814cf9378b"].borrow_amounts, type(self.accounts["6c1dd50f35f120061babc2814cf9378b"].borrow_amounts))
 

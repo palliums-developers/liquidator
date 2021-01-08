@@ -59,6 +59,7 @@ class Client:
             raise InvalidServerResponse(f"Parse response as json failed: {e}, response: {response.text}")
         return json
 
+
     def try_create_child_vasp_account(self, account):
         request = {
             "address": account.address_hex,

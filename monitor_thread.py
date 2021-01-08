@@ -1,4 +1,5 @@
 import time
+import copy
 import traceback
 from threading import Thread
 from network import create_violas_client
@@ -16,7 +17,7 @@ class MonitorThread(Thread):
         while True:
             try:
                 token_infos = self.client.get_account_state(self.client.get_bank_owner_address()).get_token_info_store_resource(accrue_interest=False).tokens
-                accounts = self.bank.accounts
+                accounts = copy.deepcopy(self.bank.accounts)
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
                     index = self.client.bank_get_currency_index(currency_code=currency)
@@ -26,9 +27,11 @@ class MonitorThread(Thread):
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
                 time.sleep(self.INTERVAL)
             except Exception as e:
-                print("monitor_thread", traceback.print_exc())
+                print("monitor_thread", e)
+                time.sleep(2)
 
     def assert_account_consistence(self, address, tokens):
+        # print(f"check {address}")
         if isinstance(address, bytes):
             address = address.hex()
         i = 0
@@ -51,8 +54,10 @@ class MonitorThread(Thread):
                 value = 0
             #存款数据
             assert tokens.ts[i+1].value == value
+            i +=2
 
     def assert_token_consistence(self, currency, token_infos):
+        # print(f"checkout {currency}")
         local_info = self.bank.get_token_info(currency)
         assert token_infos[1].total_supply == local_info.total_supply
         assert token_infos[0].total_reserves == local_info.total_reserves
