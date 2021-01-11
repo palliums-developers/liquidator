@@ -61,6 +61,7 @@ class LiquidateBorrowThread(Thread):
             amount = new_mantissa(borrow_value-collateral_value, token_info_stores.get_price(max_lock_currency))
             amount = min(amount, max_lock_balance)
             bank_amount = self.client.bank_get_amount(self.bank_account.address_hex, borrowed_currency)
+            print(amount, bank_amount)
             if bank_amount is None or bank_amount < amount:
                 a = self.client.get_balances(self.bank_account.address).get(borrowed_currency)
                 if a is None or a < amount:
@@ -73,7 +74,7 @@ class LiquidateBorrowThread(Thread):
             cs = self.client.get_account_registered_currencies(self.bank_account.address_hex)
             if collateral_currency not in cs:
                 self.client.add_currency_to_account(self.bank_account, collateral_currency)
-            self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, amount-1)
+            self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, amount-100)
             # amount = self.client.bank_get_amount(self.bank_account.address_hex, collateral_currency)
             # if amount > self.MAX_OWN_AMOUNT:
             #     self.client.bank_exit(self.bank_account, amount-100, collateral_currency)

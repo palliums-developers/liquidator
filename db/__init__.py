@@ -50,16 +50,28 @@ class DBManager():
         if len(d_values) == 0:
             return
         values = ""
+        i = 1
         for key, obj in d_values.items():
-            values += f"('{obj.get_key(key)}', '{json.dumps(obj.to_json())}'),"
-        else:
-            values += f"('{key}', '{obj}')"
-        values = values[:-1]
-        sql = f'''
-        INSERT INTO {TABLE_NAME} (key, value) VALUES {values} ON CONFLICT (key) DO UPDATE
-        SET value=excluded.value
-        '''
-        self.execute(sql)
+            i += 1
+            if hasattr(obj, "__dataclass_fields__"):
+                values += f"('{obj.get_key(key)}', '{json.dumps(obj.to_json())}'),"
+            else:
+                values += f"('{key}', '{obj}'),"
+            if i % 100 == 0:
+                values = values[:-1]
+                sql = f'''
+                INSERT INTO {TABLE_NAME} (key, value) VALUES {values} ON CONFLICT (key) DO UPDATE
+                SET value=excluded.value
+                '''
+                self.execute(sql)
+                values = ""
+        if len(values):
+            values = values[:-1]
+            sql = f'''
+            INSERT INTO {TABLE_NAME} (key, value) VALUES {values} ON CONFLICT (key) DO UPDATE
+            SET value=excluded.value
+            '''
+            self.execute(sql)
 
     def get(self, key, obj_type, default_value=None):
         if hasattr(obj_type, "__dataclass_fields__"):

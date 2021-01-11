@@ -382,8 +382,10 @@ class Bank(Base):
 
     def update_to_db(self):
         db_manage = create_database_manager()
-        for k, v in self.modified_accounts.items():
-            db_manage.set(k, v)
+
+        db_manage.sets(self.modified_accounts)
+        # for k, v in self.modified_accounts.items():
+        #     db_manage.set(k, v)
         for k, v in self.token_infos.items():
             db_manage.set(k, v)
         db_manage.set("height", self.height)
