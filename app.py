@@ -12,6 +12,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
+    print("len=", len(Bank().accounts))
     return Bank().to_json()
 
 
