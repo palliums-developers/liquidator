@@ -76,7 +76,7 @@ class LiquidateBorrowThread(Thread):
             self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, amount-1)
             amount = self.client.bank_get_amount(self.bank_account.address_hex, collateral_currency)
             if amount > self.MAX_OWN_AMOUNT:
-                self.client.bank_exit(self.bank_account, collateral_currency, amount-100)
+                self.client.bank_exit(self.bank_account, amount-100, collateral_currency)
                 self.client.transfer_coin(self.bank_account, DD_ADDR, amount-100)
 
 

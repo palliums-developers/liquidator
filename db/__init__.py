@@ -46,6 +46,9 @@ class DBManager():
         '''
         self.execute(sql)
 
+    def sets(self, d_values):
+        pass
+
     def get(self, key, obj_type, default_value=None):
         if hasattr(obj_type, "__dataclass_fields__"):
             sql = f"SELECT * FROM {TABLE_NAME} WHERE KEY = '{obj_type.get_key(key)}' "
