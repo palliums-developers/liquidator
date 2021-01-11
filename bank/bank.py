@@ -27,6 +27,7 @@ class Bank(Base):
             self.height = 0
             self.accounts = {}
             self.token_infos = {}
+            self.modified_accounts = {}
 
     def get_token_info(self, currency_code) -> TokenInfo:
         return self.token_infos.get(currency_code)
@@ -36,6 +37,7 @@ class Bank(Base):
         if account is None:
             account = AccountView(addr)
             self.accounts[addr] = account
+        self.modified_accounts[addr] = account
         return account
 
     def get_accounts_of_state(self, max_health):
@@ -84,6 +86,7 @@ class Bank(Base):
         添加一个账户
         '''
         self.accounts[tx.get_sender()] = AccountView(tx.get_sender())
+        self.modified_accounts[tx.get_sender()] = self.accounts[tx.get_sender()]
 
     def add_register_libra_token(self, tx):
         events = tx.get_bank_type_events(BankCodeType.REGISTER_LIBRA_TOKEN)
@@ -379,7 +382,7 @@ class Bank(Base):
 
     def update_to_db(self):
         db_manage = create_database_manager()
-        for k, v in self.accounts.items():
+        for k, v in self.modified_accounts.items():
             db_manage.set(k, v)
         for k, v in self.token_infos.items():
             db_manage.set(k, v)
