@@ -97,14 +97,19 @@ class BackLiquidatorThread(Thread):
         while True:
             balances = self.client.bank_get_amounts(self.bank_account.address_hex)
             for currency, amount in balances.items():
-                price = amount*Bank().get_price(currency)
+                price = mantissa_mul(amount, Bank().get_price(currency))
                 if price > MAX_OWN_PRICE:
-                    self.client.bank_exit(self.bank_account, amount-100, currency)
+                    self.client.bank_exit(self.bank_account, amount, currency)
                     balance = self.client.get_balance(self.bank_account.address_hex, currency)
                     self.client.transfer_coin(self.bank_account, DD_ADDR, balance)
-            vls_amount = self.client.get_balance(DEFAULT_COIN_NAME)
-            if vls_amount > MAX_OWN_PRICE:
-                self.client.transfer_coin(self.bank_account, DD_ADDR, vls_amount-100, currency_code=DEFAULT_COIN_NAME)
+            balances = self.client.get_balances(self.bank_account.address_hex, DEFAULT_COIN_NAME)
+            for currency, amount in balances.items():
+                if currency == DEFAULT_COIN_NAME:
+                    price = amount
+                else:
+                    price = mantissa_mul(amount, Bank().get_price(currency))
+                if price > MAX_OWN_PRICE:
+                    self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=DEFAULT_COIN_NAME)
             time.sleep(self.INTERVAL_TIME)
             
 
