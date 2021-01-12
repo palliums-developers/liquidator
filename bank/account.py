@@ -127,8 +127,7 @@ class AccountView(Base):
         return self.health
     
     def add_liquidate_borrow_to_liquidator(self, collateral_currency_code, collateral_amount, token_infos):
-        exchange_rate = token_infos.get(collateral_currency_code).get_exchange_rate()
-        self.lock_amounts.add_amount(collateral_currency_code, collateral_amount, exchange_rate)
+        self.lock_amounts.add_original_amount(collateral_currency_code, collateral_amount)
         self.update_health_state(token_infos)
         return self.health
 

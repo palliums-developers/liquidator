@@ -259,6 +259,7 @@ class Bank(Base):
         value = mantissa_div(value, collateral_price)
         value += mantissa_mul(value, new_mantissa(1, 10))
 
+
         account = self.get_account(tx.get_sender())
         borrower = self.get_account(tx.get_borrower())
 

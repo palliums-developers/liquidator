@@ -30,19 +30,19 @@ class TokenInfo(Base):
     @classmethod
     def empty(cls, **kwargs):
         return cls(currency_code=kwargs.get("currency_code"),
-                   total_supply=0,
-                   total_reserves=0,
-                   total_borrows=0,
-                   oracle_price= kwargs.get("oracle_price"),
-                   borrow_index=new_mantissa(1, 1),
-                   price=0,
+                   total_supply=kwargs.get("total_supply", 0),
+                   total_reserves=kwargs.get("total_reserves", 0),
+                   total_borrows=kwargs.get("total_borrows", 0),
+                   oracle_price= kwargs.get("oracle_price", 0),
+                   borrow_index=kwargs.get("borrow_index", new_mantissa(1, 1)),
+                   price=kwargs.get("price", 0),
                    collateral_factor=kwargs.get("collateral_factor"),
                    base_rate=kwargs.get("base_rate"),
                    rate_multiplier = kwargs.get("rate_multiplier"),
                    rate_jump_multiplier = kwargs.get("rate_jump_multiplier"),
                    rate_kink = kwargs.get("rate_kink"),
-                   last_minute = kwargs.get("last_minute") // 60,
-                   contract_value = 0)
+                   last_minute = kwargs.get("last_minute"),
+                   contract_value = kwargs.get("contract_value", 0))
 
     def accrue_interest(self, timestamp):
         borrow_rate = self.get_borrow_rate()

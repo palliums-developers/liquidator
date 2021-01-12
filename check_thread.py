@@ -13,7 +13,7 @@ class CheckerThread(Thread):
     def run(self):
         while True:
             try:
-                time.sleep(2)
+                time.sleep(60)
                 cur_time = int(time.time() // 60)
                 if cur_time > self.latest_update_time:
                     addrs = self.bank.check_borrow_index(cur_time)

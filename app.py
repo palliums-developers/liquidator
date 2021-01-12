@@ -4,7 +4,7 @@ from flask import Flask
 from scan_thread import ScannerThread
 from check_thread import CheckerThread
 from monitor_thread import MonitorThread
-from liquidate_thread import LiquidateBorrowThread
+from liquidate_thread import LiquidateBorrowThread, BackLiquidatorThread
 from bank import Bank
 
 
@@ -30,6 +30,10 @@ if __name__ == "__main__":
             liquidator_thread = LiquidateBorrowThread(unhealth_queue)
             liquidator_thread.setDaemon(True)
             liquidator_thread.start()
+
+            back_liquidator_thread = BackLiquidatorThread(unhealth_queue)
+            back_liquidator_thread.setDaemon(True)
+            back_liquidator_thread.start()
             break
 
     monitor_thread = MonitorThread()
