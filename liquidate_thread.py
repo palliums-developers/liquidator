@@ -71,7 +71,6 @@ class LiquidateBorrowThread(Thread):
             if bank_amount is None or bank_amount < amount:
                 a = self.client.get_balances(self.bank_account.address).get(borrowed_currency)
                 if a is None or a < amount:
-                    
                     mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, mantissa_div(max(amount, MIN_MINT_PRICE), token_info_stores.get_price(borrowed_currency)))
                     return
                 if not self.client.bank_is_published(self.bank_account.address_hex):

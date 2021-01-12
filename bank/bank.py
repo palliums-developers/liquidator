@@ -13,6 +13,7 @@ from network import create_database_manager
 class Bank(Base):
     _instance = None
 
+
     height: int
     accounts: Dict[str, AccountView]
     token_infos: Dict[str, TokenInfo]
@@ -24,6 +25,39 @@ class Bank(Base):
 
     def __init__(self):
         if not hasattr(self, "height"):
+            self.handers = {
+                BankCodeType.BORROW2: self.add_borrow2,
+                BankCodeType.BORROW_INDEX: self.add_borrow,
+                BankCodeType.BORROW: self.add_borrow,
+                BankCodeType.CLAIM_INCENTIVE: None,
+                BankCodeType.CREATE_TOKEN: None,
+                BankCodeType.DISABLE: None,
+                BankCodeType.ENTER_BANK: self.enter_bank,
+                BankCodeType.EXIT_BANK: self.exit_bank,
+                BankCodeType.LIQUIDATE_BORROW_INDEX: self.add_liquidate_borrow,
+                BankCodeType.LIQUIDATE_BORROW: self.add_liquidate_borrow,
+                BankCodeType.LOCK2: self.add_lock2,
+                BankCodeType.LOCK_INDEX: self.add_lock,
+                BankCodeType.LOCK: self.add_lock,
+                BankCodeType.MIGRATE: None,
+                BankCodeType.MINT: None,
+                BankCodeType.PUBLISH: self.add_publish,
+                BankCodeType.REDEEM2: self.add_redeem2,
+                BankCodeType.REDEEM_INDEX: self.add_redeem,
+                BankCodeType.REDEEM: self.add_redeem,
+                BankCodeType.REGISTER_LIBRA_TOKEN: self.add_register_libra_token,
+                BankCodeType.REPAY_BORROW2: self.add_repay_borrow2,
+                BankCodeType.REPAY_BORROW_INDEX: self.add_repay_borrow,
+                BankCodeType.REPAY_BORROW: self.add_repay_borrow,
+                BankCodeType.SET_INCENTIVE_RATE2: None,
+                BankCodeType.SET_INCENTIVE_RATE: None,
+                BankCodeType.TEST: None,
+                BankCodeType.UPDATE_COLLATERAL_FACTOR: None,
+                BankCodeType.UPDATE_PRICE_FROM_ORACLE: None,
+                BankCodeType.UPDATE_PRICE_INDEX: None,
+                BankCodeType.UPDATE_PRICE: None,
+            }
+
             self.height = 0
             self.accounts = {}
             self.token_infos = {}
@@ -56,30 +90,48 @@ class Bank(Base):
     def add_tx(self, tx: TransactionView):
         if not tx.is_successful():
             return
-        elif tx.get_code_type() == BankCodeType.REGISTER_LIBRA_TOKEN:
-            return self.add_register_libra_token(tx)
-        elif tx.get_code_type() == BankCodeType.PUBLISH:
-            return self.add_publish(tx)
-        elif tx.get_code_type() in (BankCodeType.BORROW2, BankCodeType.BORROW):
-            return self.add_borrow(tx)
-        elif tx.get_code_type() in (BankCodeType.LOCK2, BankCodeType.LOCK, BankCodeType.LOCK_INDEX):
-            return self.add_lock(tx)
-        elif tx.get_code_type() in (BankCodeType.REDEEM2, BankCodeType.REDEEM):
-            return self.add_redeem(tx)
-        elif tx.get_code_type() in (BankCodeType.REPAY_BORROW, BankCodeType.REPAY_BORROW2, BankCodeType.REPAY_BORROW_INDEX):
-            return self.add_repay_borrow(tx)
-        elif tx.get_code_type() == BankCodeType.LIQUIDATE_BORROW:
-            return self.add_liquidate_borrow(tx)
-        elif tx.get_code_type() == BankCodeType.UPDATE_COLLATERAL_FACTOR:
-            return self.update_collateral_factor(tx)
-        elif tx.get_code_type() == BankCodeType.UPDATE_PRICE_FROM_ORACLE:
-            return self.update_price_from_oracle(tx)
-        elif tx.get_code_type() == BankCodeType.UPDATE_PRICE:
-            return self.update_price(tx)
-        elif tx.get_code_type() == OracleCodType.UPDATE_EXCHANGE_RATE:
-            return self.update_oracle_price(tx)
-        elif tx.get_code_type() == BankCodeType.UPDATE_RATE_MODEL:
-            return self.update_rate_model(tx)
+        code_type = tx.get_code_type()
+        hander = self.handers.get(code_type)
+        if hander is not None:
+            hander(tx)
+        # if code_type == BankCodeType.REGISTER_LIBRA_TOKEN:
+        #     return self.add_register_libra_token(tx)
+        # elif code_type == BankCodeType.PUBLISH:
+        #     return self.add_publish(tx)
+        # elif code_type == BankCodeType.BORROW2, BankCodeType.BORROW):
+        #     return self.add_borrow(tx)
+        # elif code_type in (BankCodeType.LOCK2, BankCodeType.LOCK, BankCodeType.LOCK_INDEX):
+        #     return self.add_lock(tx)
+        # elif code_type in (BankCodeType.REDEEM2, BankCodeType.REDEEM):
+        #     return self.add_redeem(tx)
+        # elif code_type in (BankCodeType.REPAY_BORROW, BankCodeType.REPAY_BORROW2, BankCodeType.REPAY_BORROW_INDEX):
+        #     return self.add_repay_borrow(tx)
+        # elif tx.get_code_type() == BankCodeType.LIQUIDATE_BORROW:
+        #     return self.add_liquidate_borrow(tx)
+        # elif tx.get_code_type() == BankCodeType.UPDATE_COLLATERAL_FACTOR:
+        #     return self.update_collateral_factor(tx)
+        # elif tx.get_code_type() == BankCodeType.UPDATE_PRICE_FROM_ORACLE:
+        #     return self.update_price_from_oracle(tx)
+        # elif tx.get_code_type() == BankCodeType.UPDATE_PRICE:
+        #     return self.update_price(tx)
+        # elif tx.get_code_type() == OracleCodType.UPDATE_EXCHANGE_RATE:
+        #     return self.update_oracle_price(tx)
+        # elif tx.get_code_type() == BankCodeType.UPDATE_RATE_MODEL:
+        #     return self.update_rate_model(tx)
+        # elif tx.get_code_type() == BankCodeType.ENTER_BANK:
+        #     return self.enter_bank(tx)
+        # elif tx.get_code_type() == BankCodeType.EXIT_BANK:
+        #     return self.exit_bank(tx)
+
+    def enter_bank(self, tx):
+        currency_code = tx.get_currency_code()
+        token_info = self.get_token_info(currency_code)
+        token_info.add_enter_bank(tx)
+
+    def exit_bank(self, tx):
+        currency_code = tx.get_currency_code()
+        token_info = self.get_token_info(currency_code)
+        token_info.add_exit_bank(tx)
 
     def add_publish(self, tx):
         '''
@@ -132,6 +184,36 @@ class Bank(Base):
                     ret.append(account.address)
         return ret
 
+    def add_borrow2(self, tx):
+        '''
+        1. 更新oracle价格
+        2. accrue_interest
+        3. 更新账户的数据
+            借款人账户的数据
+        '''
+        ret = []
+        timestamps = tx.get_bank_timestamp()
+        currency_code = tx.get_currency_code()
+        token_info = self.get_token_info(currency_code)
+        price = self.get_price(currency_code)
+        oracle_price = self.get_oracle_price(currency_code)
+        if price != oracle_price:
+            self.set_price(currency_code, oracle_price)
+            price = oracle_price
+        token_info.accrue_interest(timestamps)
+        token_info.add_borrow2(tx)
+        account = self.get_account(tx.get_sender())
+        if account.add_borrow(currency_code, tx.get_amount(), self.token_infos) < 1:
+            ret.append(account.address)
+        if oracle_price is not None and price > oracle_price:
+            accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
+            for account in accounts:
+                if account.address == tx.get_sender():
+                    continue
+                if account.update_health_state(self.token_infos) < 1:
+                    ret.append(account.address)
+        return ret
+
     def add_lock(self, tx):
         '''
         1. 更新oracle价格
@@ -155,6 +237,38 @@ class Bank(Base):
         if account.add_lock(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
         token_info.add_lock(tx)
+        if oracle_price is not None and price > oracle_price:
+            accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
+            for account in accounts:
+                if account.address == tx.get_sender():
+                    continue
+                if account.update_health_state(self.token_infos) < 1:
+                    ret.append(account.address)
+        return ret
+
+    def add_lock2(self, tx):
+        '''
+        1. 更新oracle价格
+        2. accrue_interest
+        3. 更新账户数据
+            存款人账户的数据
+        4. 更新token_info
+        '''
+        ret = []
+        timestamps = tx.get_bank_timestamp()
+        currency_code = tx.get_currency_code()
+        token_info = self.get_token_info(currency_code)
+        price = self.get_price(currency_code)
+        oracle_price = self.get_oracle_price(currency_code)
+        if price != oracle_price:
+            self.set_price(currency_code, oracle_price)
+            price = oracle_price
+        token_info.accrue_interest(timestamps)
+        token_info.update_exchange_rate()
+        account = self.get_account(tx.get_sender())
+        if account.add_lock(currency_code, tx.get_amount(), self.token_infos) < 1:
+            ret.append(account.address)
+        token_info.add_lock2(tx)
         if oracle_price is not None and price > oracle_price:
             accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
             for account in accounts:
@@ -197,6 +311,39 @@ class Bank(Base):
                     ret.append(account.address)
         return ret
 
+    def add_redeem2(self, tx):
+        '''
+        1. 更新oralce价格
+        2. accrue_interest
+        3. 更新账户数据
+            取款人的数据
+        4. 更新token_info
+        '''
+        ret = []
+        timestamps = tx.get_bank_timestamp()
+        currency_code = tx.get_currency_code()
+        token_info = self.get_token_info(currency_code)
+        price = self.get_price(currency_code)
+        oracle_price = self.get_oracle_price(currency_code)
+        if price != oracle_price:
+            self.set_price(currency_code, oracle_price)
+            price = oracle_price
+        token_info.accrue_interest(timestamps)
+        token_info.update_exchange_rate()
+
+        token_info.add_redeem2(tx)
+        account = self.get_account(tx.get_sender())
+        if account.add_redeem(currency_code, tx.get_amount(), self.token_infos) < 1:
+            ret.append(account.address)
+        if oracle_price is not None and price > oracle_price:
+            accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
+            for account in accounts:
+                if account.address == tx.get_sender():
+                    continue
+                if account.update_health_state(self.token_infos) < 1:
+                    ret.append(account.address)
+        return ret
+
 
     def add_repay_borrow(self, tx):
         '''
@@ -220,6 +367,37 @@ class Bank(Base):
         if account.add_repay_borrow(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
         token_info.add_repay_borrow(tx)
+        if oracle_price is not None and price > oracle_price:
+            accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
+            for account in accounts:
+                if account.address == tx.get_sender():
+                    continue
+                if account.update_health_state(self.token_infos) < 1:
+                    ret.append(account.address)
+        return ret
+
+    def add_repay_borrow2(self, tx):
+        '''
+        1. 更新oralce价格
+        2. accrue_interest
+        3. 更新账户数据
+            还款人的数据
+        '''
+        ret = []
+        timestamps = tx.get_bank_timestamp()
+        currency_code = tx.get_currency_code()
+        token_info = self.get_token_info(currency_code)
+        price = self.get_price(currency_code)
+        oracle_price = self.get_oracle_price(currency_code)
+        if price != oracle_price:
+            self.set_price(currency_code, oracle_price)
+            price = oracle_price
+
+        token_info.accrue_interest(timestamps)
+        account = self.get_account(tx.get_sender())
+        if account.add_repay_borrow(currency_code, tx.get_amount(), self.token_infos) < 1:
+            ret.append(account.address)
+        token_info.add_repay_borrow2(tx)
         if oracle_price is not None and price > oracle_price:
             accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
             for account in accounts:

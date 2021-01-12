@@ -57,7 +57,7 @@ def assert_account_consistence(address, tokens, currency_code, index):
     index = client.bank_get_currency_index(currency_code)+1
     assert tokens.ts[index].value == Bank().accounts[address].lock_amounts.amounts[currency_code]
 
-def assert_token_consistence(currency, token_infos):
+def assert_token_consistence(currency, token_infos, contract_value):
     local_info = Bank().get_token_info(currency)
     assert token_infos[1].total_supply == local_info.total_supply
     assert token_infos[0].total_reserves == local_info.total_reserves
@@ -70,6 +70,8 @@ def assert_token_consistence(currency, token_infos):
     assert token_infos[0].rate_jump_multiplier == local_info.rate_jump_multiplier
     assert token_infos[0].rate_kink == local_info.rate_kink
     assert token_infos[0].last_minute == local_info.last_minute
+    assert contract_value == local_info.contract_value
+
 
 def test_lock():
     wallet = Wallet.new()
@@ -86,7 +88,8 @@ def test_lock():
     index = client.bank_get_currency_index(currency_code)
     assert_account_consistence(a1.address, tokens, currency_code, index)
     token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index: index+2]
-    assert_token_consistence(currency_code, token_info)
+    contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
+    assert_token_consistence(currency_code, token_info, contract_value)
 
 def test_borrow():
     wallet = Wallet.new()
@@ -109,7 +112,8 @@ def test_borrow():
     index = client.bank_get_currency_index(currency_code)
     assert_account_consistence(a1.address, tokens, currency_code, index)
     token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
-    assert_token_consistence(currency_code, token_info)
+    contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
+    assert_token_consistence(currency_code, token_info, contract_value)
 
 def test_redeem():
     wallet = Wallet.new()
@@ -130,7 +134,8 @@ def test_redeem():
 
     index = client.bank_get_currency_index(currency_code)
     token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
-    assert_token_consistence(currency_code, token_info)
+    contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
+    assert_token_consistence(currency_code, token_info, contract_value)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
     index = client.bank_get_currency_index(currency_code)
     assert_account_consistence(a1.address, tokens, currency_code, index)
@@ -153,7 +158,8 @@ def test_repay_borrow():
 
     index = client.bank_get_currency_index(currency_code)
     token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
-    assert_token_consistence(currency_code, token_info)
+    contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
+    assert_token_consistence(currency_code, token_info, contract_value)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
     assert_account_consistence(a1.address, tokens, currency_code, index)
 
@@ -182,8 +188,10 @@ def test_liquidator_borrow():
 
     index = client.bank_get_currency_index(currency_code)
     token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
-    assert_token_consistence(currency_code, token_info)
+    contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
+    assert_token_consistence(currency_code, token_info, contract_value)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
     assert_account_consistence(a1.address, tokens, currency_code, index)
     tokens = client.get_account_state(a2.address).get_tokens_resource()
     assert_account_consistence(a2.address, tokens, currency_code, index)
+    
