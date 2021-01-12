@@ -31,7 +31,7 @@ if __name__ == "__main__":
             liquidator_thread.setDaemon(True)
             liquidator_thread.start()
 
-            back_liquidator_thread = BackLiquidatorThread(unhealth_queue)
+            back_liquidator_thread = BackLiquidatorThread()
             back_liquidator_thread.setDaemon(True)
             back_liquidator_thread.start()
             break
