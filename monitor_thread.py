@@ -22,7 +22,8 @@ class MonitorThread(Thread):
                 for currency in currencies:
                     index = self.client.bank_get_currency_index(currency_code=currency)
                     currency_info = token_infos[index: index+2]
-                    self.assert_token_consistence(currency, currency_info)
+                    contract_value = self.client.get_balance(self.client.BANK_OWNER_ADDRESS, currency)
+                    self.assert_token_consistence(currency, currency_info, contract_value)
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
                 time.sleep(self.INTERVAL)
@@ -56,7 +57,7 @@ class MonitorThread(Thread):
             assert tokens.ts[i+1].value == value
             i +=2
 
-    def assert_token_consistence(self, currency, token_infos):
+    def assert_token_consistence(self, currency, token_infos, contract_value):
         # print(f"checkout {currency}")
         local_info = self.bank.get_token_info(currency)
         assert token_infos[1].total_supply == local_info.total_supply
@@ -70,3 +71,4 @@ class MonitorThread(Thread):
         assert token_infos[0].rate_jump_multiplier == local_info.rate_jump_multiplier
         assert token_infos[0].rate_kink == local_info.rate_kink
         assert token_infos[0].last_minute == local_info.last_minute
+        assert contract_value == local_info.contract_value

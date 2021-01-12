@@ -55,7 +55,11 @@ def assert_account_consistence(address, tokens, currency_code, index):
         assert tokens.borrows[index].interest_index == Bank().accounts[address].borrow_amounts.amounts[currency_code][1]
     #存款数据
     index = client.bank_get_currency_index(currency_code)+1
-    assert tokens.ts[index].value == Bank().accounts[address].lock_amounts.amounts[currency_code]
+    amount = Bank().accounts[address].lock_amounts.amounts.get(currency_code)
+    if amount is None:
+        assert tokens.ts[index].value == 0
+    else:
+        assert tokens.ts[index].value == amount
 
 def assert_token_consistence(currency, token_infos, contract_value):
     local_info = Bank().get_token_info(currency)
@@ -71,7 +75,6 @@ def assert_token_consistence(currency, token_infos, contract_value):
     assert token_infos[0].rate_kink == local_info.rate_kink
     assert token_infos[0].last_minute == local_info.last_minute
     assert contract_value == local_info.contract_value
-
 
 def test_lock():
     wallet = Wallet.new()
@@ -163,6 +166,7 @@ def test_repay_borrow():
     tokens = client.get_account_state(a1.address).get_tokens_resource()
     assert_account_consistence(a1.address, tokens, currency_code, index)
 
+
 def test_liquidator_borrow():
     wallet = Wallet.new()
     a1 = wallet.new_account()
@@ -194,4 +198,3 @@ def test_liquidator_borrow():
     assert_account_consistence(a1.address, tokens, currency_code, index)
     tokens = client.get_account_state(a2.address).get_tokens_resource()
     assert_account_consistence(a2.address, tokens, currency_code, index)
-    

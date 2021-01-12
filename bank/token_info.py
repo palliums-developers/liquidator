@@ -98,20 +98,8 @@ class TokenInfo(Base):
             return self.exchange_rate
         return self.update_exchange_rate()
 
-    def add_enter_bank(self, tx):
-        amount = tx.get_amount()
-        self.contract_value += amount
-
-    def add_exit_bank(self, tx):
-        amount = tx.get_amount()
-        self.contract_value -= amount
 
     def add_lock(self, tx):
-        amount = tx.get_amount()
-        tokens = mantissa_div(amount, self.exchange_rate)
-        self.total_supply += tokens
-
-    def add_lock2(self, tx):
         amount = tx.get_amount()
         self.contract_value += amount
         tokens = mantissa_div(amount, self.exchange_rate)
@@ -120,28 +108,15 @@ class TokenInfo(Base):
     def add_borrow(self, tx):
         amount = tx.get_amount()
         self.total_borrows += amount
-
-    def add_borrow2(self, tx):
-        amount = tx.get_amount()
-        self.total_borrows += amount
         self.contract_value -= amount
 
     def add_redeem(self, tx):
         amount = tx.get_amount()
         tokens = mantissa_div(amount, self.exchange_rate)
         self.total_supply = safe_sub(self.total_supply, tokens)
-
-    def add_redeem2(self, tx):
-        amount = tx.get_amount()
-        tokens = mantissa_div(amount, self.exchange_rate)
-        self.total_supply = safe_sub(self.total_supply, tokens)
         self.contract_value -= amount
 
     def add_repay_borrow(self, tx):
-        amount = tx.get_amount()
-        self.total_borrows = safe_sub(self.total_borrows, amount)
-
-    def add_repay_borrow2(self, tx):
         amount = tx.get_amount()
         self.total_borrows = safe_sub(self.total_borrows, amount)
         self.contract_value += amount
