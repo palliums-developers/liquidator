@@ -108,7 +108,7 @@ class BackLiquidatorThread(Thread):
                 else:
                     price = mantissa_mul(amount, Bank().get_price(currency))
                 if price > MAX_OWN_PRICE:
-                    self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=DEFAULT_COIN_NAME)
+                    self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
             time.sleep(self.INTERVAL_TIME)
             
 

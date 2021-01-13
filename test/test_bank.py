@@ -3,13 +3,13 @@ import json
 from violas_client import Wallet, Client
 from bank import Bank, AccountView, TokenInfo
 
-client = Client("bj_testnet")
-currency_code = "USD"
+client = Client("violas_testnet")
+currency_code = "vUSDT"
 
 def update_tokens_info():
     bank = Bank()
     state = client.get_account_state(client.BANK_OWNER_ADDRESS)
-    resource = state.get_token_info_store_resource()
+    resource = state.get_token_info_store_resource(accrue_interest=False)
     for index, token in enumerate(resource.tokens):
         if index % 2 == 0:
             token = json.loads(token.to_json())
@@ -20,6 +20,7 @@ def update_tokens_info():
             if rate:
                 token["oracle_price"] = rate.value
             bank.token_infos[currency_code] = TokenInfo.empty(**token)
+    print(bank.token_infos)
 
 update_tokens_info()
 
@@ -84,13 +85,17 @@ def test_lock():
     add_tx(a1.address, seq)
     seq = client.bank_lock(a1, 10_000_000, currency_code=currency_code)
     add_tx(a1.address, seq)
+    contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
+    index = client.bank_get_currency_index(currency_code)
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource(accrue_interest=False).tokens[index: index+2]
+    assert_token_consistence(currency_code, token_info, contract_value)
     time.sleep(60)
     seq = client.bank_lock(a1, 500, currency_code=currency_code)
     add_tx(a1.address, seq)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
     index = client.bank_get_currency_index(currency_code)
     assert_account_consistence(a1.address, tokens, currency_code, index)
-    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index: index+2]
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource(accrue_interest=False).tokens[index: index+2]
     contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
     assert_token_consistence(currency_code, token_info, contract_value)
 
@@ -114,7 +119,7 @@ def test_borrow():
     tokens = client.get_account_state(a1.address).get_tokens_resource()
     index = client.bank_get_currency_index(currency_code)
     assert_account_consistence(a1.address, tokens, currency_code, index)
-    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource(accrue_interest=False).tokens[index:index+2]
     contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
     assert_token_consistence(currency_code, token_info, contract_value)
 
@@ -136,7 +141,7 @@ def test_redeem():
     add_tx(a1.address, seq)
 
     index = client.bank_get_currency_index(currency_code)
-    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource(accrue_interest=False).tokens[index:index+2]
     contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
     assert_token_consistence(currency_code, token_info, contract_value)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
@@ -160,7 +165,7 @@ def test_repay_borrow():
     add_tx(a1.address, seq)
 
     index = client.bank_get_currency_index(currency_code)
-    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource(accrue_interest=False).tokens[index:index+2]
     contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
     assert_token_consistence(currency_code, token_info, contract_value)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
@@ -191,7 +196,7 @@ def test_liquidator_borrow():
     add_tx(a2.address, seq)
 
     index = client.bank_get_currency_index(currency_code)
-    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource(accrue_interest=False).tokens[index:index+2]
     contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
     assert_token_consistence(currency_code, token_info, contract_value)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
@@ -210,7 +215,7 @@ def test_enter_bank():
     add_tx(a1.address, seq)
 
     index = client.bank_get_currency_index(currency_code)
-    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource(accrue_interest=False).tokens[index:index+2]
     contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
     assert_token_consistence(currency_code, token_info, contract_value)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
@@ -228,7 +233,7 @@ def test_exit_bank():
     add_tx(a1.address, seq)
 
     index = client.bank_get_currency_index(currency_code)
-    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource(accrue_interest=False).tokens[index:index+2]
     contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
     assert_token_consistence(currency_code, token_info, contract_value)
     tokens = client.get_account_state(a1.address).get_tokens_resource()
