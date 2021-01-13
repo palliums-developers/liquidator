@@ -60,6 +60,7 @@ class MonitorThread(Thread):
     def assert_token_consistence(self, currency, token_infos, contract_value):
         print(f"checkout {currency}")
         local_info = self.bank.get_token_info(currency)
+        print(token_infos[0].total_supply, token_infos[1].total_supply, local_info.total_supply)
         assert token_infos[1].total_supply == local_info.total_supply
         assert token_infos[0].total_reserves == local_info.total_reserves
         assert token_infos[0].total_borrows == local_info.total_borrows
