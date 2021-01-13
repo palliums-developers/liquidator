@@ -198,3 +198,38 @@ def test_liquidator_borrow():
     assert_account_consistence(a1.address, tokens, currency_code, index)
     tokens = client.get_account_state(a2.address).get_tokens_resource()
     assert_account_consistence(a2.address, tokens, currency_code, index)
+
+
+def test_enter_bank():
+    wallet = Wallet.new()
+    a1 = wallet.new_account()
+    client.mint_coin(a1.address, 50_000_000, auth_key_prefix=a1.auth_key_prefix, currency_code=currency_code)
+    seq = client.bank_publish(a1)
+    add_tx(a1.address, seq)
+    seq = client.bank_enter(a1, 10_000_000, currency_code=currency_code)
+    add_tx(a1.address, seq)
+
+    index = client.bank_get_currency_index(currency_code)
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
+    contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
+    assert_token_consistence(currency_code, token_info, contract_value)
+    tokens = client.get_account_state(a1.address).get_tokens_resource()
+    assert_account_consistence(a1.address, tokens, currency_code, index)
+
+def test_exit_bank():
+    wallet = Wallet.new()
+    a1 = wallet.new_account()
+    client.mint_coin(a1.address, 50_000_000, auth_key_prefix=a1.auth_key_prefix, currency_code=currency_code)
+    seq = client.bank_publish(a1)
+    add_tx(a1.address, seq)
+    seq = client.bank_enter(a1, 10_000_000, currency_code=currency_code)
+    add_tx(a1.address, seq)
+    seq = client.bank_exit(a1, 5_000_000, currency_code=currency_code)
+    add_tx(a1.address, seq)
+
+    index = client.bank_get_currency_index(currency_code)
+    token_info = client.get_account_state(client.BANK_OWNER_ADDRESS).get_token_info_store_resource().tokens[index:index+2]
+    contract_value = client.bank_get_amount(client.BANK_OWNER_ADDRESS, currency_code)
+    assert_token_consistence(currency_code, token_info, contract_value)
+    tokens = client.get_account_state(a1.address).get_tokens_resource()
+    assert_account_consistence(a1.address, tokens, currency_code, index)

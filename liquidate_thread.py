@@ -101,7 +101,7 @@ class BackLiquidatorThread(Thread):
                     self.client.bank_exit(self.bank_account, amount, currency)
                     balance = self.client.get_balance(self.bank_account.address_hex, currency)
                     self.client.transfer_coin(self.bank_account, DD_ADDR, balance)
-            balances = self.client.get_balances(self.bank_account.address_hex, DEFAULT_COIN_NAME)
+            balances = self.client.get_balances(self.bank_account.address_hex)
             for currency, amount in balances.items():
                 if currency == DEFAULT_COIN_NAME:
                     price = amount

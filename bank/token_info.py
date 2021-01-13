@@ -38,9 +38,9 @@ class TokenInfo(Base):
                    price=kwargs.get("price", 0),
                    collateral_factor=kwargs.get("collateral_factor"),
                    base_rate=kwargs.get("base_rate"),
-                   rate_multiplier = kwargs.get("rate_multiplier"),
-                   rate_jump_multiplier = kwargs.get("rate_jump_multiplier"),
-                   rate_kink = kwargs.get("rate_kink"),
+                   rate_multiplier=kwargs.get("rate_multiplier"),
+                   rate_jump_multiplier=kwargs.get("rate_jump_multiplier"),
+                   rate_kink=kwargs.get("rate_kink"),
                    last_minute = kwargs.get("last_minute"),
                    contract_value = kwargs.get("contract_value", 0))
 
@@ -97,7 +97,6 @@ class TokenInfo(Base):
         if hasattr(self, "exchange_rate"):
             return self.exchange_rate
         return self.update_exchange_rate()
-
 
     def add_lock(self, tx):
         amount = tx.get_amount()

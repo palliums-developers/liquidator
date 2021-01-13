@@ -32,6 +32,9 @@ class ScannerThread(Thread):
                     time.sleep(1)
                     continue
                 for index, tx in enumerate(txs):
+                    if tx.get_code_type() == CodeType.UNKNOWN:
+                        print(tx.get_version())
+                        continue
                     if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
                         addrs = self.bank.add_tx(tx)
                         if self.state == self.UPDATED:
