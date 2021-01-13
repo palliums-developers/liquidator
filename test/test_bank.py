@@ -4,7 +4,7 @@ from violas_client import Wallet, Client
 from bank import Bank, AccountView, TokenInfo
 
 client = Client("violas_testnet")
-currency_code = "vUSDT"
+currency_code = "vBTC"
 
 def update_tokens_info():
     bank = Bank()

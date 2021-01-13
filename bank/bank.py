@@ -95,6 +95,8 @@ class Bank(Base):
         code_type = tx.get_code_type()
         hander = self.handers.get(code_type)
         if hander is not None:
+            token_info = self.get_token_info("vBTC")
+            print(token_info.last_minute)
             hander(tx)
 
     def add_publish(self, tx):
@@ -116,7 +118,7 @@ class Bank(Base):
                 rate_multiplier=event.rate_multiplier//(365*24*60),
                 rate_jump_multiplier=event.rate_jump_multiplier//(365*24*60),
                 rate_kink=event.rate_kink,
-                last_minute=events[0].get_timestamp())
+                last_minute=events[0].get_timestamp() // 60)
 
     def add_borrow(self, tx):
         '''
