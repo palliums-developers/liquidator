@@ -22,7 +22,7 @@ class MonitorThread(Thread):
                 for currency in currencies:
                     index = self.client.bank_get_currency_index(currency_code=currency)
                     currency_info = token_infos[index: index+2]
-                    contract_value = self.client.get_balance(self.client.BANK_OWNER_ADDRESS, currency)
+                    contract_value = self.client.bank_get_amount(self.client.BANK_OWNER_ADDRESS, currency)
                     self.assert_token_consistence(currency, currency_info, contract_value)
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())

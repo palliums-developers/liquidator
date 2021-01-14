@@ -18,7 +18,7 @@ MIN_MINT_PRICE = 20_000_000
 #VLS最小值
 MIN_VLS_AMOUNT = 1000
 #拥有的最大值
-MAX_OWN_PRICE = 10_000_000
+MAX_OWN_PRICE = 100_000_000
 
 
 class LiquidateBorrowThread(Thread):
@@ -100,15 +100,17 @@ class BackLiquidatorThread(Thread):
                 if price > MAX_OWN_PRICE:
                     self.client.bank_exit(self.bank_account, amount, currency)
                     balance = self.client.get_balance(self.bank_account.address_hex, currency)
-                    self.client.transfer_coin(self.bank_account, DD_ADDR, balance)
+                    self.client.transfer_coin(self.bank_account, DD_ADDR, balance - mantissa_div(MIN_MINT_PRICE, Bank().get_price(currency)))
+
             balances = self.client.get_balances(self.bank_account.address_hex)
             for currency, amount in balances.items():
                 if currency == DEFAULT_COIN_NAME:
-                    price = amount
+                    price = new_mantissa(1, 1)
                 else:
-                    price = mantissa_mul(amount, Bank().get_price(currency))
-                if price > MAX_OWN_PRICE:
-                    self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
+                    price =  Bank().get_price(currency)
+                value = mantissa_mul(amount, price)
+                if value > MAX_OWN_PRICE:
+                    self.client.transfer_coin(self.bank_account, DD_ADDR, amount - mantissa_div(MIN_MINT_PRICE, price), currency_code=currency)
             time.sleep(self.INTERVAL_TIME)
             
 
