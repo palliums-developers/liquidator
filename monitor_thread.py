@@ -15,7 +15,7 @@ class MonitorThread(Thread):
 
     def run(self):
         while True:
-            # try:
+            try:
                 token_infos = self.client.get_account_state(self.client.get_bank_owner_address()).get_token_info_store_resource(accrue_interest=False).tokens
                 accounts = copy.deepcopy(self.bank.accounts)
                 currencies = self.client.bank_get_registered_currencies(True)
@@ -27,9 +27,9 @@ class MonitorThread(Thread):
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
                 time.sleep(self.INTERVAL)
-            # except Exception as e:
-            #     print("monitor_thread", e)
-            #     time.sleep(2)
+            except Exception as e:
+                print("monitor_thread", e)
+                time.sleep(2)
 
     def assert_account_consistence(self, address, tokens):
         # print(f"check {address}")
@@ -58,7 +58,7 @@ class MonitorThread(Thread):
             i +=2
 
     def assert_token_consistence(self, currency, token_infos, contract_value):
-        print(f"checkout {currency}")
+        # print(f"checkout {currency}")
         local_info = self.bank.get_token_info(currency)
         assert token_infos[1].total_supply == local_info.total_supply
         assert token_infos[0].total_reserves == local_info.total_reserves
@@ -71,5 +71,4 @@ class MonitorThread(Thread):
         assert token_infos[0].rate_jump_multiplier == local_info.rate_jump_multiplier
         assert token_infos[0].rate_kink == local_info.rate_kink
         assert token_infos[0].last_minute == local_info.last_minute
-        print(contract_value, local_info.contract_value)
         assert contract_value == local_info.contract_value
