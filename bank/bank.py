@@ -95,11 +95,6 @@ class Bank(Base):
         code_type = tx.get_code_type()
         hander = self.handers.get(code_type)
         if hander is not None:
-            try:
-                token_info = self.get_token_info("vBTC")
-                print(token_info.last_minute)
-            except:
-                pass
             hander(tx)
 
     def add_publish(self, tx):
