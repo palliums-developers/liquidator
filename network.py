@@ -7,7 +7,6 @@ from http_client import Client as HttpClient
 from testnet import *
 from db import DBManager
 from violas_client import Client as ViolasClient
-from bank import Bank
 
 os.environ["AZURE_CLIENT_ID"] = CLIENT_ID
 os.environ["AZURE_TENANT_ID"] = TENANT_ID
