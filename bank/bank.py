@@ -96,7 +96,7 @@ class Bank(Base):
         hander = self.handers.get(code_type)
         if hander is not None:
             if code_type in (BankCodeType.BORROW, BankCodeType.BORROW2):
-                if tx.get_code_type() == "vBTC":
+                if tx.get_currency_code() == "vBTC":
                     print(f"{tx.get_version()}, {tx.get_sender()}, {tx.get_amount()}")
 
             hander(tx)
