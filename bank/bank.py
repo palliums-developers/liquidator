@@ -95,6 +95,10 @@ class Bank(Base):
         code_type = tx.get_code_type()
         hander = self.handers.get(code_type)
         if hander is not None:
+            if code_type in (BankCodeType.BORROW, BankCodeType.BORROW2):
+                if tx.get_code_type() == "vBTC":
+                    print(f"{tx.get_version()}, {tx.get_sender()}, {tx.get_amount()}")
+
             hander(tx)
 
     def add_publish(self, tx):
