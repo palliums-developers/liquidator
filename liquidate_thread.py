@@ -14,11 +14,11 @@ from network import (
 # 清算的最小值
 LIQUIDATE_LIMIT = 1_000
 # 每次mint的值
-MIN_MINT_PRICE = 20_000_000
+MIN_MINT_VALUE = 20_000_000
 #VLS最小值
-MIN_VLS_AMOUNT = 1000
+MIN_VLS_AMOUNT = 1_000
 #拥有的最大值
-MAX_OWN_PRICE = 100_000_000
+MAX_OWN_VALUE = 100_000_000
 
 
 class LiquidateBorrowThread(Thread):
@@ -32,17 +32,17 @@ class LiquidateBorrowThread(Thread):
 
     def run(self) -> None:
         while True:
-            # try:
+            try:
                 addr = self.queue.get()
                 self.liquidate_borrow(addr)
-            # except Exception as e:
-            #     print("liquidator_thread", e)
-            #     time.sleep(2)
+            except Exception as e:
+                print("liquidator_thread", e)
+                time.sleep(2)
 
 
     def liquidate_borrow(self, addr):
         if self.client.get_balance(self.bank_account.address_hex, DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
-            mint_coin_to_liquidator_account(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_PRICE)
+            mint_coin_to_liquidator_account(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
             return
         collateral_value = self.client.bank_get_total_collateral_value(addr)
         borrow_value = self.client.bank_get_total_borrow_value(addr)
@@ -72,16 +72,16 @@ class LiquidateBorrowThread(Thread):
             if bank_amount is None or bank_amount < amount:
                 a = self.client.get_balances(self.bank_account.address).get(borrowed_currency)
                 if a is None or a < amount:
-                    mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, mantissa_div(max(amount, MIN_MINT_PRICE), token_info_stores.get_price(borrowed_currency)), self.bank.get_currency_id(borrowed_currency))
+                    mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, mantissa_div(max(amount, MIN_MINT_VALUE), token_info_stores.get_price(borrowed_currency)), self.bank.get_currency_id(borrowed_currency))
                     return
                 if not self.client.bank_is_published(self.bank_account.address_hex):
                     self.client.bank_publish(self.bank_account)
                 currency_amount = self.client.get_balance(self.bank_account.address_hex, currency_code=borrowed_currency)
-                self.client.bank_enter(self.bank_account, currency_amount-100_000, currency_code=borrowed_currency)
+                self.client.bank_enter(self.bank_account, currency_amount, currency_code=borrowed_currency)
             cs = self.client.get_account_registered_currencies(self.bank_account.address_hex)
             if collateral_currency not in cs:
                 self.client.add_currency_to_account(self.bank_account, collateral_currency)
-            self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, mantissa_div(amount, token_info_stores.get_price(collateral_currency)-1))
+            self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, mantissa_div(amount, token_info_stores.get_price(collateral_currency))-1)
             self.bank.add_currency_id(borrowed_currency)
 
 class BackLiquidatorThread(Thread):
@@ -95,22 +95,29 @@ class BackLiquidatorThread(Thread):
 
     def run(self) -> None:
         while True:
-            balances = self.client.bank_get_amounts(self.bank_account.address_hex)
-            for currency, amount in balances.items():
-                price = mantissa_mul(amount, Bank().get_price(currency))
-                if price > MAX_OWN_PRICE:
-                    self.client.bank_exit(self.bank_account, amount, currency)
-
-            balances = self.client.get_balances(self.bank_account.address_hex)
-            for currency, amount in balances.items():
-                if currency == DEFAULT_COIN_NAME:
-                    price = new_mantissa(1, 1)
-                else:
+            try:
+                balances = self.client.bank_get_amounts(self.bank_account.address_hex)
+                for currency, amount in balances.items():
                     price = Bank().get_price(currency)
-                value = mantissa_mul(amount, price)
-                if value > MAX_OWN_PRICE:
-                    self.client.transfer_coin(self.bank_account, DD_ADDR, amount - mantissa_div(MIN_MINT_PRICE, price), currency_code=currency)
-            time.sleep(self.INTERVAL_TIME)
+                    value = mantissa_mul(amount, price)
+                    if value > MAX_OWN_VALUE:
+                        self.client.bank_exit(self.bank_account, mantissa_div(value-MIN_MINT_VALUE, price), currency)
+
+                balances = self.client.get_balances(self.bank_account.address_hex)
+                for currency, amount in balances.items():
+                    if currency == DEFAULT_COIN_NAME:
+                        price = new_mantissa(1, 1)
+                    else:
+                        price = Bank().get_price(currency)
+                    value = mantissa_mul(amount, price)
+                    if value > MAX_OWN_VALUE:
+                        amount = amount if currency != DEFAULT_COIN_NAME else amount - MIN_VLS_AMOUNT
+                        self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
+                time.sleep(self.INTERVAL_TIME)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                time.sleep(2)
             
 
 if __name__ == "__main__":

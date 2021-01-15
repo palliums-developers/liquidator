@@ -5,4 +5,7 @@ from bank import Bank, AccountView, TokenInfo
 import time
 from network import get_liquidator_account, create_http_client
 
-print("11_222_333".split("_"))
+account = get_liquidator_account()
+client = Client("violas_testnet")
+client.mint_coin(account.address_hex, 5_000_000_000, currency_code="vBTC")
+client.bank_enter(account, 2_000_000_000, currency_code="vBTC")
