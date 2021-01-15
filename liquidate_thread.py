@@ -28,6 +28,7 @@ class LiquidateBorrowThread(Thread):
         self.queue = queue
         self.client = create_violas_client()
         self.bank_account = get_liquidator_account()
+        self.bank = Bank()
 
     def run(self) -> None:
         while True:
@@ -71,7 +72,7 @@ class LiquidateBorrowThread(Thread):
             if bank_amount is None or bank_amount < amount:
                 a = self.client.get_balances(self.bank_account.address).get(borrowed_currency)
                 if a is None or a < amount:
-                    mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, mantissa_div(max(amount, MIN_MINT_PRICE), token_info_stores.get_price(borrowed_currency)))
+                    mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, mantissa_div(max(amount, MIN_MINT_PRICE), token_info_stores.get_price(borrowed_currency)), self.bank.get_currency_id(borrowed_currency))
                     return
                 if not self.client.bank_is_published(self.bank_account.address_hex):
                     self.client.bank_publish(self.bank_account)
@@ -81,7 +82,7 @@ class LiquidateBorrowThread(Thread):
             if collateral_currency not in cs:
                 self.client.add_currency_to_account(self.bank_account, collateral_currency)
             self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, mantissa_div(amount, token_info_stores.get_price(collateral_currency)-1))
-
+            self.bank.add_currency_id(borrowed_currency)
 
 class BackLiquidatorThread(Thread):
     # 拥有的最大的值

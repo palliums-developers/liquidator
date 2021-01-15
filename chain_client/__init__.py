@@ -14,19 +14,23 @@ class Client:
         self._client = ViolasClient.new(url)
         self._http_client = HttpClient(create_child_vasp_url)
 
-    def mint_coin(self, account, currency_code, amount):
+    def mint_coin(self, account, currency_code, amount, currency_id=None):
         if self._client.get_account_state(account.address_hex) is None:
             self._http_client.try_create_child_vasp_account(account)
 
         if not self.has_apply_request(currency_code):
             if currency_code not in self._client.get_account_registered_currencies(account.address_hex):
                 self._client.add_currency_to_account(account, currency_code)
+            if currency_id is not None:
+                tran_id = f"{currency_code}_{currency_id}_{amount}"
+            else:
+                tran_id = f"{os.urandom(16).hex()}"
             data = {
                 "flag":"violas",
                 "type":"funds",
                 "opttype":"map",
                 "chain": "violas",
-                "tran_id":f"{os.urandom(16).hex()}",
+                "tran_id": tran_id,
                 "token_id": currency_code,
                 "amount": amount,
                 "to_address": f"0x{account.address_hex}",

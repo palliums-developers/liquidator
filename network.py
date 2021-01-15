@@ -7,6 +7,7 @@ from http_client import Client as HttpClient
 from testnet import *
 from db import DBManager
 from violas_client import Client as ViolasClient
+from bank import Bank
 
 os.environ["AZURE_CLIENT_ID"] = CLIENT_ID
 os.environ["AZURE_TENANT_ID"] = TENANT_ID
@@ -34,6 +35,6 @@ def get_liquidator_account():
     wallet = Wallet.new_from_mnemonic(secret)
     return wallet.new_account()
 
-def mint_coin_to_liquidator_account(liquidator_account, currency_code, amount):
+def mint_coin_to_liquidator_account(liquidator_account, currency_code, amount, currency_id=None):
     client = ChainClient(CHAIN_URL, DD_ADDR, HTTP_SERVER)
-    return client.mint_coin(liquidator_account, currency_code, amount)
+    return client.mint_coin(liquidator_account, currency_code, amount, currency_id)

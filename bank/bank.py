@@ -17,6 +17,7 @@ class Bank(Base):
     height: int
     accounts: Dict[str, AccountView]
     token_infos: Dict[str, TokenInfo]
+    currency_ids: Dict[str, int]
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -64,6 +65,14 @@ class Bank(Base):
             self.accounts = {}
             self.token_infos = {}
             self.modified_accounts = {}
+            self.currency_ids = {}
+
+    def get_currency_id(self, currency_code):
+        return self.currency_ids.get(currency_code, 0)
+
+    def add_currency_id(self, currency_code):
+        id = self.get_currency_id(currency_code)
+        self.currency_ids[currency_code] = id+1
 
     def get_token_info(self, currency_code) -> TokenInfo:
         return self.token_infos.get(currency_code)
@@ -95,10 +104,6 @@ class Bank(Base):
         code_type = tx.get_code_type()
         hander = self.handers.get(code_type)
         if hander is not None:
-            if code_type in (BankCodeType.BORROW, BankCodeType.BORROW2):
-                if tx.get_currency_code() == "vBTC":
-                    print(f"{tx.get_version()}, {tx.get_sender()}, {tx.get_amount()}")
-
             hander(tx)
 
     def add_publish(self, tx):
@@ -408,6 +413,7 @@ class Bank(Base):
         for k, v in self.token_infos.items():
             db_manage.set(k, v)
         db_manage.set("height", self.height)
+        db_manage.set("currency_ids", self.currency_ids)
 
     def update_from_db(self):
         db_manage = create_database_manager()
@@ -418,5 +424,6 @@ class Bank(Base):
         for token in tokens:
             self.token_infos[token.currency_code] = token
         self.height = db_manage.get("height", int, 0)
+        self.currency_ids = db_manage.get("currency_ids", dict, {})
         # print(self.accounts["6c1dd50f35f120061babc2814cf9378b"].borrow_amounts, type(self.accounts["6c1dd50f35f120061babc2814cf9378b"].borrow_amounts))
 
