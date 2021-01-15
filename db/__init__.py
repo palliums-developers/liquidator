@@ -34,12 +34,11 @@ class DBManager():
         conn.close()
         return result
 
-
     def set(self, key, obj):
         if hasattr(obj, "__dataclass_fields__"):
             values = f"('{obj.get_key(key)}', '{json.dumps(obj.to_json())}')"
         else:
-            values = f"('{key}', '{obj}')"
+            values = f"('{key}', '{json.dumps(obj)}')"
         sql = f'''
         INSERT INTO {TABLE_NAME} (key, value) VALUES {values} ON CONFLICT (key) DO UPDATE
         SET value=excluded.value
