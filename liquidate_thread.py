@@ -32,12 +32,12 @@ class LiquidateBorrowThread(Thread):
 
     def run(self) -> None:
         while True:
-            try:
+            # try:
                 addr = self.queue.get()
                 self.liquidate_borrow(addr)
-            except Exception as e:
-                print("liquidator_thread", e)
-                time.sleep(2)
+            # except Exception as e:
+            #     print("liquidator_thread", e)
+            #     time.sleep(2)
 
 
     def liquidate_borrow(self, addr):
@@ -66,7 +66,7 @@ class LiquidateBorrowThread(Thread):
 
             borrowed_currency = max_borrow_currency
             collateral_currency = max_lock_currency
-            amount = new_mantissa(borrow_value-collateral_value, token_info_stores.get_price(max_lock_currency))
+            amount = borrow_value - collateral_value
             amount = min(amount, max_lock_balance)
             bank_amount = mantissa_mul(self.client.bank_get_amount(self.bank_account.address_hex, borrowed_currency), token_info_stores.get_price(borrowed_currency))
             if bank_amount is None or bank_amount < amount:
@@ -101,21 +101,14 @@ class BackLiquidatorThread(Thread):
                     price = Bank().get_price(currency)
                     value = mantissa_mul(amount, price)
                     if value > MAX_OWN_VALUE:
-                        self.client.bank_exit(self.bank_account, mantissa_div(value-MIN_MINT_VALUE, price), currency)
-
-                balances = self.client.get_balances(self.bank_account.address_hex)
-                for currency, amount in balances.items():
-                    if currency == DEFAULT_COIN_NAME:
-                        price = new_mantissa(1, 1)
-                    else:
-                        price = Bank().get_price(currency)
-                    value = mantissa_mul(amount, price)
-                    if value > MAX_OWN_VALUE:
-                        amount = amount if currency != DEFAULT_COIN_NAME else amount - MIN_VLS_AMOUNT
+                        amount = mantissa_div(value-MIN_MINT_VALUE, price)
+                        self.client.bank_exit(self.bank_account, amount, currency)
                         self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
+
                 time.sleep(self.INTERVAL_TIME)
             except Exception as e:
                 import traceback
+                print("back_liquidator_thread", e)
                 traceback.print_exc()
                 time.sleep(2)
             

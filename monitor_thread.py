@@ -28,7 +28,8 @@ class MonitorThread(Thread):
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
                 time.sleep(self.INTERVAL)
             except Exception as e:
-                print("monitor_thread", e)
+                print("monitor_thread")
+                traceback.print_exc()
                 time.sleep(2)
 
     def assert_account_consistence(self, address, tokens):
