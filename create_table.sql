@@ -1,7 +1,6 @@
 
-CREATE TABLE IF NOT EXISTS liquidator(
+CREATE TABLE IF NOT EXISTS liquidator3(
     key VARCHAR NOT NULL PRIMARY KEY,
     value jsonb
 );
 
-DROP TABLE liquidator;
