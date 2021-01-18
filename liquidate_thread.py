@@ -1,6 +1,6 @@
 import time
 from queue import Queue
-from threading import Thread
+from threading import Thread, Lock
 from bank.util import new_mantissa, mantissa_mul, mantissa_div
 from bank import Bank
 from network import (
@@ -19,6 +19,7 @@ MIN_MINT_VALUE = 200_000_000
 MIN_VLS_AMOUNT = 1_000
 #拥有的最大值
 MAX_OWN_VALUE = 1_000_000_000
+lock = Lock()
 
 
 class LiquidateBorrowThread(Thread):
@@ -43,6 +44,7 @@ class LiquidateBorrowThread(Thread):
 
 
     def liquidate_borrow(self, addr):
+        lock.acquire()
         if self.client.get_balance(self.bank_account.address_hex, DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
             mint_coin_to_liquidator_account(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
             return
@@ -85,6 +87,7 @@ class LiquidateBorrowThread(Thread):
                 self.client.add_currency_to_account(self.bank_account, collateral_currency)
             self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, int(mantissa_div(amount, token_info_stores.get_price(collateral_currency))*0.9))
             self.bank.add_currency_id(borrowed_currency)
+            lock.release()
 
 class BackLiquidatorThread(Thread):
     # 拥有的最大的值
@@ -104,8 +107,10 @@ class BackLiquidatorThread(Thread):
                     value = mantissa_mul(amount, price)
                     if value > MAX_OWN_VALUE:
                         amount = mantissa_div(value-MIN_MINT_VALUE, price)
+                        lock.acquire()
                         self.client.bank_exit(self.bank_account, amount, currency)
                         self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
+                        lock.release()
 
                 time.sleep(self.INTERVAL_TIME)
             except Exception as e:
