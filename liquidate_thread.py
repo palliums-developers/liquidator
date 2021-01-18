@@ -18,7 +18,7 @@ MIN_MINT_VALUE = 200_000_000
 #VLS最小值
 MIN_VLS_AMOUNT = 1_000
 #拥有的最大值
-MAX_OWN_VALUE = 100_000_000
+MAX_OWN_VALUE = 1_000_000_000
 
 
 class LiquidateBorrowThread(Thread):
