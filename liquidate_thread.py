@@ -32,12 +32,14 @@ class LiquidateBorrowThread(Thread):
 
     def run(self) -> None:
         while True:
-            # try:
+            try:
                 addr = self.queue.get()
                 self.liquidate_borrow(addr)
-            # except Exception as e:
-            #     print("liquidator_thread", e)
-            #     time.sleep(2)
+            except Exception as e:
+                import traceback
+                print("liquidator_thread")
+                traceback.print_exc()
+                time.sleep(2)
 
 
     def liquidate_borrow(self, addr):
