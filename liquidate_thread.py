@@ -12,9 +12,9 @@ from network import (
 )
 
 # 清算的最小值
-LIQUIDATE_LIMIT = 1_000
+LIQUIDATE_LIMIT = 10_000_000
 # 每次mint的值
-MIN_MINT_VALUE = 20_000_000
+MIN_MINT_VALUE = 200_000_000
 #VLS最小值
 MIN_VLS_AMOUNT = 1_000
 #拥有的最大值
@@ -83,7 +83,7 @@ class LiquidateBorrowThread(Thread):
             cs = self.client.get_account_registered_currencies(self.bank_account.address_hex)
             if collateral_currency not in cs:
                 self.client.add_currency_to_account(self.bank_account, collateral_currency)
-            self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, mantissa_div(amount, token_info_stores.get_price(collateral_currency))-1)
+            self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, int(mantissa_div(amount, token_info_stores.get_price(collateral_currency))*0.9))
             self.bank.add_currency_id(borrowed_currency)
 
 class BackLiquidatorThread(Thread):
