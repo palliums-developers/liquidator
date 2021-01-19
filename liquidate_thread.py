@@ -62,12 +62,12 @@ class LiquidateBorrowThread(Thread):
             max_borrow_currency, max_borrow_balance = None, 0
 
             for currency, amount in lock_amounts.items():
-                balance = amount * token_info_stores.get_price(currency)
+                balance = mantissa_mul(amount, token_info_stores.get_price(currency))
                 if balance > max_lock_balance:
                     max_lock_currency, max_lock_balance = currency, balance
 
             for currency, amount in borrow_amounts.items():
-                balance = amount[1] * token_info_stores.get_price(currency)
+                balance = mantissa_mul(amount[1], token_info_stores.get_price(currency))
                 if balance > max_borrow_balance:
                     max_borrow_currency, max_borrow_balance = currency, balance
 
