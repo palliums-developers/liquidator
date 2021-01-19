@@ -132,7 +132,6 @@ class BackLiquidatorThread(Thread):
                         self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
                         lock.release()
                     self.set_back_num(currency, 0)
-
                 time.sleep(self.INTERVAL_TIME)
             except Exception as e:
                 import traceback
@@ -153,5 +152,5 @@ class BackLiquidatorThread(Thread):
 
 if __name__ == "__main__":
     q = Queue()
-    t = LiquidateBorrowThread(q)
-    t.liquidate_borrow("2F396FCBE88A27F0FC05934BBEF3687B")
+    t = BackLiquidatorThread()
+    t.run()
