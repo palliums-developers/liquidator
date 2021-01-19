@@ -28,7 +28,7 @@ class MonitorThread(Thread):
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
                 end_time = time.time()
-                print(f"checkout {len(accounts)} need {end_time-start_time} s")
+                # print(f"checkout {len(accounts)} need {end_time-start_time} s")
                 time.sleep(self.INTERVAL)
             except Exception as e:
                 print("monitor_thread")
