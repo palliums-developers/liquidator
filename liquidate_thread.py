@@ -74,7 +74,7 @@ class LiquidateBorrowThread(Thread):
             owe_value = min(owe_value, max_lock_value)
             bank_value = mantissa_mul(self.client.bank_get_amount(self.bank_account.address_hex, borrowed_currency), token_info_stores.get_price(borrowed_currency))
             if bank_value is None or bank_value < owe_value:
-                owe_amount = mantissa_div(owe_value, Bank.get_price(borrowed_currency))
+                owe_amount = mantissa_div(owe_value, Bank().get_price(borrowed_currency))
                 a = self.client.get_balances(self.bank_account.address).get(borrowed_currency)
                 if a is None or a < owe_amount:
                     mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, mantissa_div(max(owe_value, MIN_MINT_VALUE), token_info_stores.get_price(borrowed_currency)), self.bank.get_currency_id(borrowed_currency))
