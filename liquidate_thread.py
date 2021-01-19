@@ -121,6 +121,7 @@ class BackLiquidatorThread(Thread):
                         price = Bank().get_price(currency)
                     value = mantissa_mul(amount, price)
                     if value > MAX_OWN_VALUE:
+                        print(currency, self.get_back_num(currency))
                         if self.get_back_num(currency) < 2:
                             self.add_back_num(currency)
                             continue
