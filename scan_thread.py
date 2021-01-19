@@ -43,9 +43,10 @@ class ScannerThread(Thread):
                 self.bank.height += len(txs)
                 if self.state == self.UPDATING and len(txs) < limit:
                     self.state = self.UPDATED
-                if self.bank.height - db_height >= 1_000:
+                if self.bank.height - db_height >= 10_000:
                     # start_time = time.time()
                     self.bank.update_to_db()
+                    print(self.bank.height)
                     # end_time = time.time()
                     # print("update_to_db need time: ", end_time-start_time)
                     db_height = self.bank.height

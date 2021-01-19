@@ -16,7 +16,9 @@ class CheckerThread(Thread):
                 time.sleep(60)
                 cur_time = int(time.time() // 60)
                 if cur_time > self.latest_update_time:
+                    print("start_check_borrow_index")
                     addrs = self.bank.check_borrow_index(cur_time)
+                    print("check_borrow_index", addrs)
                     for addr in addrs:
                         self.queue.put(addr)
                 self.latest_update_time = cur_time

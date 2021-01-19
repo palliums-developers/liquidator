@@ -58,28 +58,29 @@ class LiquidateBorrowThread(Thread):
             token_info_stores = owner_state.get_token_info_store_resource()
             lock_amounts = self.client.bank_get_lock_amounts(addr)
             borrow_amounts = self.client.bank_get_borrow_amounts(addr)
-            max_lock_currency, max_lock_balance = None, 0
-            max_borrow_currency, max_borrow_balance = None, 0
+            max_lock_currency, max_lock_value = None, 0
+            max_borrow_currency, max_borrow_value = None, 0
 
             for currency, amount in lock_amounts.items():
                 balance = mantissa_mul(amount, token_info_stores.get_price(currency))
-                if balance > max_lock_balance:
-                    max_lock_currency, max_lock_balance = currency, balance
+                if balance > max_lock_value:
+                    max_lock_currency, max_lock_value = currency, balance
 
             for currency, amount in borrow_amounts.items():
                 balance = mantissa_mul(amount[1], token_info_stores.get_price(currency))
-                if balance > max_borrow_balance:
-                    max_borrow_currency, max_borrow_balance = currency, balance
+                if balance > max_borrow_value:
+                    max_borrow_currency, max_borrow_value = currency, balance
 
             borrowed_currency = max_borrow_currency
             collateral_currency = max_lock_currency
-            amount = borrow_value - collateral_value
-            amount = min(amount, max_lock_balance)
-            bank_amount = mantissa_mul(self.client.bank_get_amount(self.bank_account.address_hex, borrowed_currency), token_info_stores.get_price(borrowed_currency))
-            if bank_amount is None or bank_amount < amount:
+            owe_value = borrow_value - collateral_value
+            owe_value = min(owe_value, max_lock_value)
+            bank_value = mantissa_mul(self.client.bank_get_amount(self.bank_account.address_hex, borrowed_currency), token_info_stores.get_price(borrowed_currency))
+            if bank_value is None or bank_value < owe_value:
+                owe_amount = mantissa_div(owe_value, Bank.get_price(borrowed_currency))
                 a = self.client.get_balances(self.bank_account.address).get(borrowed_currency)
-                if a is None or a < amount:
-                    mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, mantissa_div(max(amount, MIN_MINT_VALUE), token_info_stores.get_price(borrowed_currency)), self.bank.get_currency_id(borrowed_currency))
+                if a is None or a < owe_amount:
+                    mint_coin_to_liquidator_account(self.bank_account, borrowed_currency, mantissa_div(max(owe_value, MIN_MINT_VALUE), token_info_stores.get_price(borrowed_currency)), self.bank.get_currency_id(borrowed_currency))
                     return
                 if not self.client.bank_is_published(self.bank_account.address_hex):
                     self.client.bank_publish(self.bank_account)
@@ -89,10 +90,10 @@ class LiquidateBorrowThread(Thread):
             if collateral_currency not in cs:
                 self.client.add_currency_to_account(self.bank_account, collateral_currency)
             try:
-                self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, int(mantissa_div(amount, token_info_stores.get_price(collateral_currency))*0.9))
+                self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, int(owe_amount*0.9))
             except Exception as e:
                 traceback.print_exc()
-                print(addr, borrowed_currency, collateral_currency, amount, int(mantissa_div(amount, token_info_stores.get_price(collateral_currency))*0.9))
+                print(addr, borrowed_currency, collateral_currency, owe_amount)
             self.bank.add_currency_id(borrowed_currency)
 
 class BackLiquidatorThread(Thread):
