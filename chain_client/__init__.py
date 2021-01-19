@@ -19,8 +19,8 @@ class Client:
         if self._client.get_account_state(account.address_hex) is None:
             self._http_client.try_create_child_vasp_account(account)
 
-        if currency_id is not None:
-            id = self.get_currency_id(currency_code)
+        id = self.get_currency_id(currency_code)
+        if currency_id is not None and id is not None:
             if currency_id <= id:
                 print("mint_coin", currency_code, amount, currency_id)
                 return
