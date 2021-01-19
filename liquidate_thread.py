@@ -37,7 +37,6 @@ class LiquidateBorrowThread(Thread):
             addr = self.queue.get()
             try:
                 lock.acquire()
-                print("liquidate_borrow", addr)
                 self.liquidate_borrow(addr)
             except Exception as e:
                 print("liquidator_thread")
