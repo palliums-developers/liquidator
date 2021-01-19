@@ -35,6 +35,5 @@ def get_liquidator_account():
     return wallet.new_account()
 
 def mint_coin_to_liquidator_account(liquidator_account, currency_code, amount, currency_id=None):
-    print("mint coin", currency_code, amount, currency_id)
     client = ChainClient(CHAIN_URL, DD_ADDR, HTTP_SERVER)
     return client.mint_coin(liquidator_account, currency_code, amount, currency_id)
