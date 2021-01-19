@@ -3,6 +3,7 @@ from queue import Queue
 from threading import Thread, Lock
 from bank.util import new_mantissa, mantissa_mul, mantissa_div
 from bank import Bank
+import traceback
 from network import (
     create_violas_client,
     get_liquidator_account,
@@ -38,7 +39,6 @@ class LiquidateBorrowThread(Thread):
                 lock.acquire()
                 self.liquidate_borrow(addr)
             except Exception as e:
-                import traceback
                 print("liquidator_thread")
                 traceback.print_exc()
                 time.sleep(2)
@@ -87,7 +87,11 @@ class LiquidateBorrowThread(Thread):
             cs = self.client.get_account_registered_currencies(self.bank_account.address_hex)
             if collateral_currency not in cs:
                 self.client.add_currency_to_account(self.bank_account, collateral_currency)
-            self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, int(mantissa_div(amount, token_info_stores.get_price(collateral_currency))*0.9))
+            try:
+                self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, int(mantissa_div(amount, token_info_stores.get_price(collateral_currency))*0.9))
+            except Exception as e:
+                traceback.print_exc()
+                print(addr, borrowed_currency, collateral_currency, amount, int(mantissa_div(amount, token_info_stores.get_price(collateral_currency))*0.9))
             self.bank.add_currency_id(borrowed_currency)
 
 class BackLiquidatorThread(Thread):
@@ -103,6 +107,7 @@ class BackLiquidatorThread(Thread):
     def run(self) -> None:
 
         while True:
+            lock.acquire()
             try:
                 balances = self.client.bank_get_amounts(self.bank_account.address_hex)
                 for currency, amount in balances.items():
@@ -110,9 +115,7 @@ class BackLiquidatorThread(Thread):
                     value = mantissa_mul(amount, price)
                     if value > MAX_OWN_VALUE:
                         amount = mantissa_div(value-MIN_MINT_VALUE, price)
-                        lock.acquire()
                         self.client.bank_exit(self.bank_account, amount, currency)
-                        lock.release()
 
                 balances = self.client.get_balances(self.bank_account.address_hex)
                 for currency, amount in balances.items():
@@ -129,9 +132,7 @@ class BackLiquidatorThread(Thread):
                             amount = mantissa_div(value - MIN_MINT_VALUE, price)
                         else:
                             amount = mantissa_div(value, price)
-                        lock.acquire()
                         self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
-                        lock.release()
                     self.set_back_num(currency, 0)
                 time.sleep(self.INTERVAL_TIME)
             except Exception as e:
@@ -139,6 +140,8 @@ class BackLiquidatorThread(Thread):
                 print("back_liquidator_thread", e)
                 traceback.print_exc()
                 time.sleep(2)
+            finally:
+                lock.release()
 
     def get_back_num(self, currency):
         return self.back_currencies.get(currency, 0)
