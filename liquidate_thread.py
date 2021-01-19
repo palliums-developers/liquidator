@@ -36,18 +36,14 @@ class LiquidateBorrowThread(Thread):
         while True:
             addr = self.queue.get()
             try:
-                print("liquidate_borrow acquire")
                 lock.acquire()
                 print("liquidate_borrow", addr)
                 self.liquidate_borrow(addr)
             except Exception as e:
                 print("liquidator_thread")
                 traceback.print_exc()
-                time.sleep(2)
             finally:
-                print("liquidate_borrow release")
                 lock.release()
-
 
     def liquidate_borrow(self, addr):
         if self.client.get_balance(self.bank_account.address_hex, DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
@@ -112,7 +108,6 @@ class BackLiquidatorThread(Thread):
 
         while True:
 
-            print("back_liquidator acquire")
             lock.acquire()
             try:
                 balances = self.client.bank_get_amounts(self.bank_account.address_hex)
@@ -140,15 +135,14 @@ class BackLiquidatorThread(Thread):
                             amount = mantissa_div(value, price)
                         self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
                     self.set_back_num(currency, 0)
-                time.sleep(self.INTERVAL_TIME)
             except Exception as e:
                 import traceback
                 print("back_liquidator_thread", e)
                 traceback.print_exc()
                 time.sleep(2)
             finally:
-                print("back_liquidator release")
                 lock.release()
+                time.sleep(self.INTERVAL_TIME)
 
     def get_back_num(self, currency):
         return self.back_currencies.get(currency, 0)
