@@ -37,6 +37,7 @@ class LiquidateBorrowThread(Thread):
             addr = self.queue.get()
             try:
                 lock.acquire()
+                print("liquidate_borrow", addr)
                 self.liquidate_borrow(addr)
             except Exception as e:
                 print("liquidator_thread")
@@ -125,6 +126,7 @@ class BackLiquidatorThread(Thread):
                         price = Bank().get_price(currency)
                     value = mantissa_mul(amount, price)
                     if value > MAX_OWN_VALUE:
+                        print(currency, self.get_back_num(currency))
                         if self.get_back_num(currency) < 2:
                             self.add_back_num(currency)
                             continue
