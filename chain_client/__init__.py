@@ -45,20 +45,9 @@ class Client:
         }
         self._client.transfer_coin(account, self._dd_addr, 1, data=json.dumps(data), currency_code="VLS")
         self.set_currency_id(currency_code, currency_id)
-        self._apply_recodes[currency_code] = int(time.time())
         return True
         # return False
 
-    def has_apply_request(self, currency_code):
-        last_time = self._apply_recodes.get(currency_code)
-        if last_time is None:
-            return False
-        cur_time = int(time.time())
-        if cur_time - last_time > self.REQUEST_INTERVAL:
-            print(f"Specified time not mint {currency_code}, time: {last_time}")
-            self._apply_recodes.pop(currency_code)
-            return False
-        return True
 
     @classmethod
     def get_currency_id(cls, currency_code):
