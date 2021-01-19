@@ -36,6 +36,7 @@ class LiquidateBorrowThread(Thread):
         while True:
             addr = self.queue.get()
             try:
+                print("liquidate_borrow acquire")
                 lock.acquire()
                 print("liquidate_borrow", addr)
                 self.liquidate_borrow(addr)
@@ -44,6 +45,7 @@ class LiquidateBorrowThread(Thread):
                 traceback.print_exc()
                 time.sleep(2)
             finally:
+                print("liquidate_borrow release")
                 lock.release()
 
 
@@ -109,6 +111,8 @@ class BackLiquidatorThread(Thread):
     def run(self) -> None:
 
         while True:
+
+            print("back_liquidator acquire")
             lock.acquire()
             try:
                 balances = self.client.bank_get_amounts(self.bank_account.address_hex)
@@ -143,6 +147,7 @@ class BackLiquidatorThread(Thread):
                 traceback.print_exc()
                 time.sleep(2)
             finally:
+                print("back_liquidator release")
                 lock.release()
 
     def get_back_num(self, currency):
