@@ -6,22 +6,19 @@ from http_client import Client as HttpClient
 
 class Client:
     REQUEST_INTERVAL = 60*60
-    _apply_recodes = {}
+    _last_currency_ids = {}
 
     def __init__(self, chain_url, dd_addr, create_child_vasp_url):
         url = chain_url
         self._dd_addr = dd_addr
         self._client = ViolasClient.new(url)
         self._http_client = HttpClient(create_child_vasp_url)
-        self._last_currency_ids = {}
 
     def mint_coin(self, account, currency_code, amount, currency_id=None):
         if self._client.get_account_state(account.address_hex) is None:
             self._http_client.try_create_child_vasp_account(account)
 
         id = self.get_currency_id(currency_code)
-        print("1111", currency_id, id)
-
         if currency_id is not None and id is not None:
             print(currency_id, id)
             if currency_id <= id:
@@ -63,9 +60,11 @@ class Client:
             return False
         return True
 
-    def get_currency_id(self, currency_code):
-        return self._last_currency_ids.get(currency_code)
+    @classmethod
+    def get_currency_id(cls, currency_code):
+        return cls._last_currency_ids.get(currency_code)
 
-    def set_currency_id(self, currency_code, id):
-        self._last_currency_ids[currency_code] = id
+    @classmethod
+    def set_currency_id(cls, currency_code, id):
+        cls._last_currency_ids[currency_code] = id
 

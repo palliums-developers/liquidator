@@ -12,6 +12,9 @@ os.environ["AZURE_CLIENT_ID"] = CLIENT_ID
 os.environ["AZURE_TENANT_ID"] = TENANT_ID
 os.environ["AZURE_CLIENT_SECRET"] = SECRET
 
+
+
+
 def create_database_manager():
     return DBManager(dsn)
 
