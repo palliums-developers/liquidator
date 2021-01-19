@@ -97,8 +97,10 @@ class BackLiquidatorThread(Thread):
         super(BackLiquidatorThread, self).__init__()
         self.client = create_violas_client()
         self.bank_account = get_liquidator_account()
+        self.back_currencies = {}
 
     def run(self) -> None:
+
         while True:
             try:
                 balances = self.client.bank_get_amounts(self.bank_account.address_hex)
@@ -109,8 +111,27 @@ class BackLiquidatorThread(Thread):
                         amount = mantissa_div(value-MIN_MINT_VALUE, price)
                         lock.acquire()
                         self.client.bank_exit(self.bank_account, amount, currency)
+                        lock.release()
+
+                balances = self.client.get_balances(self.bank_account.address_hex)
+                for currency, amount in balances.items():
+                    if currency == DEFAULT_COIN_NAME:
+                        price = new_mantissa(1, 1)
+                    else:
+                        price = Bank().get_price(currency)
+                    value = mantissa_mul(amount, price)
+                    if value > MAX_OWN_VALUE:
+                        if self.get_back_num(currency) < 2:
+                            self.add_back_num(currency)
+                            continue
+                        if currency == DEFAULT_COIN_NAME:
+                            amount = mantissa_div(value - MIN_MINT_VALUE, price)
+                        else:
+                            amount = mantissa_div(value, price)
+                        lock.acquire()
                         self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
                         lock.release()
+                    self.set_back_num(currency, 0)
 
                 time.sleep(self.INTERVAL_TIME)
             except Exception as e:
@@ -118,6 +139,16 @@ class BackLiquidatorThread(Thread):
                 print("back_liquidator_thread", e)
                 traceback.print_exc()
                 time.sleep(2)
+
+    def get_back_num(self, currency):
+        return self.back_currencies.get(currency, 0)
+
+    def set_back_num(self, currency, num):
+        self.back_currencies[currency] = num
+
+    def add_back_num(self, currency):
+        num = self.get_back_num(currency)
+        self.set_back_num(currency, num+1)
             
 
 if __name__ == "__main__":
