@@ -104,7 +104,7 @@ class LiquidateBorrowThread(Thread):
 
 class BackLiquidatorThread(Thread):
     # 拥有的最大的值
-    INTERVAL_TIME = 60
+    INTERVAL_TIME = 61
 
     def __init__(self):
         super(BackLiquidatorThread, self).__init__()
@@ -125,7 +125,7 @@ class BackLiquidatorThread(Thread):
                     if value > MAX_OWN_VALUE:
                         amount = mantissa_div(value-MIN_MINT_VALUE, price)
                         self.client.bank_exit(self.bank_account, amount, currency)
-                        Bank.add_currency_id(currency)
+                        Bank().add_currency_id(currency)
 
                 balances = self.client.get_balances(self.bank_account.address_hex)
                 for currency, amount in balances.items():
