@@ -8,8 +8,7 @@ from network import get_liquidator_account, create_http_client
 account = get_liquidator_account()
 # print(account.address_hex)
 client = Client("violas_testnet")
-client.mint_coin(account.address_hex, 3_000_000_000, currency_code="vBTC")
-# print(client.bank_get_amounts(account.address_hex))
+print(client.bank_get_amounts(account.address_hex))
 # addr = "3F36F03FE6CAA661AE4EA1F8B55BA906"
 # b = client.bank_get_total_borrow_value(addr)
 # l = client.bank_get_total_collateral_value(addr)

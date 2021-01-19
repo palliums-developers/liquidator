@@ -13,10 +13,17 @@ class Client:
         self._dd_addr = dd_addr
         self._client = ViolasClient.new(url)
         self._http_client = HttpClient(create_child_vasp_url)
+        self._last_currency_ids = {}
 
     def mint_coin(self, account, currency_code, amount, currency_id=None):
         if self._client.get_account_state(account.address_hex) is None:
             self._http_client.try_create_child_vasp_account(account)
+
+        if currency_id is not None:
+            id = self.get_currency_id(currency_code)
+            if currency_id <= id:
+                print("mint_coin", currency_code, amount, currency_id)
+                return
 
         # if not self.has_apply_request(currency_code):
         if currency_code not in self._client.get_account_registered_currencies(account.address_hex):
@@ -37,6 +44,7 @@ class Client:
             "state":"start"
         }
         self._client.transfer_coin(account, self._dd_addr, 1, data=json.dumps(data), currency_code="VLS")
+        self.set_currency_id(currency_code, currency_id)
         self._apply_recodes[currency_code] = int(time.time())
         return True
         # return False
@@ -52,5 +60,9 @@ class Client:
             return False
         return True
 
+    def get_currency_id(self, currency_code):
+        return self._last_currency_ids.get(currency_code)
 
+    def set_currency_id(self, currency_code, id):
+        self._last_currency_ids[currency_code] = id
 

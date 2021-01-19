@@ -46,11 +46,6 @@ class LiquidateBorrowThread(Thread):
                 lock.release()
 
     def mint_coin(self, account, currency_code, amount, currency_id=None):
-        print("mint coin",currency_code, amount, currency_id)
-        if currency_id is not None:
-            id = self.bank.get_currency_id(currency_code)
-            if currency_id <= id:
-                return
         return mint_coin_to_liquidator_account(account, currency_code, amount, currency_id)
 
     def liquidate_borrow(self, addr):
