@@ -45,6 +45,7 @@ class LiquidateBorrowThread(Thread):
 
     def liquidate_borrow(self, addr):
         lock.acquire()
+        print("liquidate_borrow lock", addr)
         if self.client.get_balance(self.bank_account.address_hex, DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
             mint_coin_to_liquidator_account(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
             return
@@ -87,6 +88,7 @@ class LiquidateBorrowThread(Thread):
                 self.client.add_currency_to_account(self.bank_account, collateral_currency)
             self.client.bank_liquidate_borrow(self.bank_account, addr, borrowed_currency, collateral_currency, int(mantissa_div(amount, token_info_stores.get_price(collateral_currency))*0.9))
             self.bank.add_currency_id(borrowed_currency)
+            print("liquidate_borrow release")
             lock.release()
 
 class BackLiquidatorThread(Thread):
@@ -130,8 +132,10 @@ class BackLiquidatorThread(Thread):
                         else:
                             amount = mantissa_div(value, price)
                         lock.acquire()
+                        print("amount=", amount, "transfer lock")
                         self.client.transfer_coin(self.bank_account, DD_ADDR, amount, currency_code=currency)
                         lock.release()
+                        print("transfer_release")
                     self.set_back_num(currency, 0)
                 time.sleep(self.INTERVAL_TIME)
             except Exception as e:
