@@ -26,6 +26,7 @@ class ScannerThread(Thread):
     def run(self):
         limit = 1000
         self.bank.update_from_db()
+        self.coin_porter.update_from_db()
         db_height = self.bank.height
 
         while True:
@@ -52,6 +53,7 @@ class ScannerThread(Thread):
                     self.state = self.UPDATED
                 if self.bank.height - db_height >= 100_000:
                     self.bank.update_to_db()
+                    self.coin_porter.update_to_db()
                     print(self.bank.height)
                     db_height = self.bank.height
             except Exception as e:

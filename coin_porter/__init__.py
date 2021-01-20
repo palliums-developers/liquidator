@@ -58,7 +58,6 @@ class CoinPorter(Base):
             liquidate_id = self.get_last_liquidate_id(currency_code)
             #申请之后如果没有执行过清算， 则不再申请
             if liquidate_id <= apply_id:
-                print(f"liquidate_id: {liquidate_id} <= apply_id: {apply_id}")
                 return
             tran_id = f"{currency_code}_{liquidate_id}_{amount}"
             self.set_last_apply_id(currency_code, liquidate_id)
@@ -79,6 +78,7 @@ class CoinPorter(Base):
             "state":"start"
         }
         self.violas_client.transfer_coin(ac, self.dd_addr, 1, data=json.dumps(data), currency_code=DEFAULT_COIN_NAME)
+
 
     def add_tx(self, tx):
         if not tx.is_successful():
