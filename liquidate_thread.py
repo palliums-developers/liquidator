@@ -98,7 +98,7 @@ class LiquidateBorrowThread(Thread):
             bank_value = mantissa_mul(self.client.bank_get_amount(self.bank_account.address_hex, max_borrow_currency), borrow_currency_price)
             if bank_value < LIQUIDATE_LIMIT:
                 amount = mantissa_div(LIQUIDATE_LIMIT, borrow_currency_price)
-                if self.try_enter_bank(self.bank_account, max_borrow_currency, amount) < 0:
+                if self.try_enter_bank(self.bank_account, max_borrow_currency, amount) <= 0:
                     value = max(MIN_MINT_VALUE, liquidate_value)
                     amount = mantissa_div(value, borrow_currency_price)
                     self.try_apply_coin(self.bank_account, max_borrow_currency, amount)
@@ -180,5 +180,5 @@ class BackLiquidatorThread(Thread):
 
 if __name__ == "__main__":
     q = Queue()
-    t = BackLiquidatorThread()
-    t.run()
+    t = LiquidateBorrowThread(q)
+    t.liquidate_borrow("0034c08592887639565ff72c17acaf35")
