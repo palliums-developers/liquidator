@@ -405,7 +405,6 @@ class Bank(Base):
         for k, v in self.token_infos.items():
             db_manage.set(k, v)
         db_manage.set("height", self.height)
-        db_manage.set("currency_ids", self.currency_ids)
 
     def update_from_db(self):
         db_manage = create_database_manager()
