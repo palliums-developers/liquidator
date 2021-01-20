@@ -70,8 +70,7 @@ class LiquidateBorrowThread(Thread):
         if not self.client.bank_is_published(ac.address):
             self.client.bank_publish(ac)
 
-        amount = self.client.get_balance(ac.address)
-        print(amount, currency_code, type(amount), type(currency_code))
+        amount = self.client.get_balance(ac.address, currency_code)
         self.client.bank_enter(self.bank_account, amount, currency_code=currency_code)
         return amount
 
