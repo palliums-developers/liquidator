@@ -6,16 +6,5 @@ import time
 from network import get_liquidator_account, create_http_client
 
 
-account = get_liquidator_account()
-# # print(account.address_hex)
-client = Client("violas_testnet")
-# client.mint_coin(account.address_hex, 3_000_000_000, currency_code="vBTC")
-print(client.bank_get_amounts(account.address_hex))
-# # addr = "3F36F03FE6CAA661AE4EA1F8B55BA906"
-# # b = client.bank_get_total_borrow_value(addr)
-# # l = client.bank_get_total_collateral_value(addr)
-# # print(b-l)
-# # client.mint_coin(account.address_hex, 2_000_000_000, currency_code="vUSDT")
-#
-# # client.mint_coin(account.address_hex, 5_000_000_000, currency_code="vBTC")
-# # client.bank_enter(account, 2_000_000_000, currency_code="vBTC")
+code = "7b22666c6167223a202276696f6c6173222c202274797065223a202266756e6473222c20226f707474797065223a20226d6170222c2022636861696e223a202276696f6c6173222c20227472616e5f6964223a2022764254435f315f31303030222c2022746f6b656e5f6964223a202276425443222c2022616d6f756e74223a20313030302c2022746f5f61646472657373223a202230786231346263333238366534623962343163383630323266326536313464373231222c20227374617465223a20227374617274227d"
+print(bytes.fromhex(code))

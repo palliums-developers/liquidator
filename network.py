@@ -2,7 +2,6 @@ import azure
 from violas_client import Wallet
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
-from chain_client import Client as ChainClient
 from http_client import Client as HttpClient
 from testnet import *
 from db import DBManager
@@ -11,8 +10,6 @@ from violas_client import Client as ViolasClient
 os.environ["AZURE_CLIENT_ID"] = CLIENT_ID
 os.environ["AZURE_TENANT_ID"] = TENANT_ID
 os.environ["AZURE_CLIENT_SECRET"] = SECRET
-
-
 
 
 def create_database_manager():
@@ -36,7 +33,3 @@ def get_liquidator_account():
         secret_client.set_secret(LIQUIDATOR_SECRET_NAME, secret)
     wallet = Wallet.new_from_mnemonic(secret)
     return wallet.new_account()
-
-def mint_coin_to_liquidator_account(liquidator_account, currency_code, amount, currency_id=None):
-    client = ChainClient(CHAIN_URL, DD_ADDR, HTTP_SERVER)
-    return client.mint_coin(liquidator_account, currency_code, amount, currency_id)

@@ -8,13 +8,11 @@ from .util import mantissa_mul, mantissa_div, new_mantissa
 from violas_client.banktypes.bytecode import CodeType as BankCodeType
 from violas_client.vlstypes.view import TransactionView
 from violas_client.oracle_client.bytecodes import CodeType as OracleCodType
-from network import create_database_manager, get_liquidator_account, DD_ADDR
-from violas_client.lbrtypes.bytecode import CodeType as ViolasCodeType
+from network import create_database_manager
 
 @dataclasses.dataclass(init=False)
 class Bank(Base):
     _instance = None
-
 
     height: int
     accounts: Dict[str, AccountView]
@@ -61,23 +59,12 @@ class Bank(Base):
                 BankCodeType.UPDATE_COLLATERAL_FACTOR: self.update_collateral_factor,
                 BankCodeType.UPDATE_RATE_MODEL: self.update_rate_model,
                 OracleCodType.UPDATE_EXCHANGE_RATE: self.update_oracle_price,
-                ViolasCodeType.PEER_TO_PEER_WITH_METADATA: self.add_p2p
             }
 
             self.height = 0
             self.accounts = {}
             self.token_infos = {}
             self.modified_accounts = {}
-            self.currency_ids = {}
-            self.liquidator_address = get_liquidator_account().address_hex
-            self.dd_address = DD_ADDR
-
-    def get_currency_id(self, currency_code):
-        return self.currency_ids.get(currency_code, 0)
-
-    def add_currency_id(self, currency_code):
-        id = self.get_currency_id(currency_code)
-        self.currency_ids[currency_code] = id+1
 
     def get_token_info(self, currency_code) -> TokenInfo:
         return self.token_infos.get(currency_code)
@@ -110,20 +97,6 @@ class Bank(Base):
         hander = self.handers.get(code_type)
         if hander is not None:
             hander(tx)
-
-    def add_p2p(self, tx: TransactionView):
-        sender = tx.get_sender()
-        receiver = tx.get_receiver()
-        if sender.lower() == self.liquidator_address and receiver.lower() == self.dd_address:
-            data = tx.get_data()
-            data = bytes.fromhex(data)
-            try:
-                value = json.loads(bytes.decode(data))
-                currency, id, amount = value.get("tran_id").split("_")
-                cur_id = self.get_currency_id(currency)
-                self.currency_ids[currency] = max(cur_id, int(id))
-            except:
-                pass
 
     def add_publish(self, tx):
         '''
@@ -443,6 +416,3 @@ class Bank(Base):
         for token in tokens:
             self.token_infos[token.currency_code] = token
         self.height = db_manage.get("height", int, 0)
-        self.currency_ids = db_manage.get("currency_ids", dict, {})
-        # print(self.accounts["6c1dd50f35f120061babc2814cf9378b"].borrow_amounts, type(self.accounts["6c1dd50f35f120061babc2814cf9378b"].borrow_amounts))
-
