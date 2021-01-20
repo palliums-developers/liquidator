@@ -122,7 +122,8 @@ class CoinPorter(Base):
         if id is None:
             id = self.get_last_apply_id(currency_code)+1
             self.last_liquidate_ids[currency_code] = id
-            return id
+        return id
+
 
     def add_last_liquidate_id(self, currency_code):
         apply_id = self.get_last_apply_id(currency_code)
