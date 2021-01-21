@@ -64,14 +64,20 @@ class LiquidateBorrowThread(Thread):
         return max_borrow_currency, max_borrow_value
 
     def try_enter_bank(self, ac, currency_code, min_amount):
-        balance = self.client.get_balance(ac.address, currency_code)
-        if balance < min_amount:
+        amount = self.client.get_balance(ac.address, currency_code)
+        if amount < min_amount:
             return 0
         if not self.client.bank_is_published(ac.address):
             self.client.bank_publish(ac)
 
-        amount = self.client.get_balance(ac.address, currency_code)
         self.client.bank_enter(self.bank_account, amount, currency_code=currency_code)
+        return amount
+    
+    def try_redeem(self, ac, currency_code, min_amount):
+        amount = self.client.bank_get_lock_amount(ac.address, currency_code)
+        if amount < min_amount:
+            return 0
+        self.client.bank_redeem(ac, amount, currency_code)
         return amount
 
     def try_apply_coin(self, ac, currency_code, amount):
@@ -98,7 +104,7 @@ class LiquidateBorrowThread(Thread):
             bank_value = mantissa_mul(self.client.bank_get_amount(self.bank_account.address_hex, max_borrow_currency), borrow_currency_price)
             if bank_value < LIQUIDATE_LIMIT:
                 amount = mantissa_div(LIQUIDATE_LIMIT, borrow_currency_price)
-                if self.try_enter_bank(self.bank_account, max_borrow_currency, amount) <= 0:
+                if self.try_redeem(self.bank_account, max_borrow_currency, amount) <= 0 and self.try_enter_bank(self.bank_account, max_borrow_currency, amount) <= 0:
                     value = max(MIN_MINT_VALUE, liquidate_value)
                     amount = mantissa_div(value, borrow_currency_price)
                     self.try_apply_coin(self.bank_account, max_borrow_currency, amount)
@@ -119,8 +125,8 @@ class LiquidateBorrowThread(Thread):
                 print(addr, max_borrow_currency, max_lock_currency, liquidate_amount)
             finally:
                 self.coin_porter.add_last_liquidate_id(max_borrow_currency)
-                print(self.coin_porter.last_liquidate_ids)
-                print(self.coin_porter.last_apply_ids)
+                print("liquidator_id:", self.coin_porter.last_liquidate_ids)
+                print("apply_id:", self.coin_porter.last_apply_ids)
 
 class BackLiquidatorThread(Thread):
     # 拥有的最大的值
@@ -137,6 +143,7 @@ class BackLiquidatorThread(Thread):
         while True:
             lock.acquire()
             try:
+                self.try_redeem()
                 self.try_exit_bank()
                 self.try_back_coin()
             except Exception as e:
@@ -159,6 +166,18 @@ class BackLiquidatorThread(Thread):
                 if value > MAX_OWN_VALUE:
                     amount = mantissa_div(value - MIN_MINT_VALUE, price)
                     self.client.bank_exit(self.bank_account, amount, currency)
+
+    def try_redeem(self):
+        balances = self.client.bank_get_lock_amounts(self.bank_account.address)
+        for currency, amount in balances.items():
+            last_liquidate_time = self.coin_porter.get_last_liquidate_time(currency)
+            cur_time = time.time()
+            if cur_time - last_liquidate_time > 2*self.INTERVAL_TIME:
+                price = self.bank.get_price(currency)
+                value = mantissa_mul(amount, price)
+                if value > MAX_OWN_VALUE:
+                    amount = mantissa_div(value - MIN_MINT_VALUE, price)
+                    self.client.bank_redeem(self.bank_account, amount, currency)
 
     def try_back_coin(self):
         balances = self.client.get_balances(self.bank_account.address)
