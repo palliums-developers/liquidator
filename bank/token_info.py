@@ -46,7 +46,7 @@ class TokenInfo(Base):
 
     def accrue_interest(self, timestamp):
         borrow_rate = self.get_borrow_rate()
-        minute = int(timestamp) // 60
+        minute = int(timestamp // 60)
         cnt = safe_sub(minute, self.last_minute)
         if cnt <= 0:
             return self
