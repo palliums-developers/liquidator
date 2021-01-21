@@ -4,12 +4,13 @@ from violas_client import Wallet, Client
 from bank import Bank, AccountView, TokenInfo
 import time
 from network import get_liquidator_account, create_http_client
+from bank.bank import Bank
 
+# bank = Bank()
+# bank.update_from_db()
+# print(bank.to_json())
 
-# code = "7b22666c6167223a202276696f6c6173222c202274797065223a202266756e6473222c20226f707474797065223a20226d6170222c2022636861696e223a202276696f6c6173222c20227472616e5f6964223a2022764254435f31393031335f363931383936222c2022746f6b656e5f6964223a202276425443222c2022616d6f756e74223a203639313839362c2022746f5f61646472657373223a202230786231346263333238366534623962343163383630323266326536313464373231222c20227374617465223a20227374617274227d"
-# print(bytes.fromhex(code))
-
-ac = get_liquidator_account()
 client = Client("violas_testnet")
-print(client.bank_get_amounts(ac.address))
-print(client.bank_get_lock_amounts(ac.address))
+state =client.get_account_state(client.BANK_OWNER_ADDRESS)
+print(state.get_token_info_store_resource(accrue_interest = False))
+print(state.get_tokens_resource())

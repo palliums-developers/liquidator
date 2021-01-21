@@ -414,3 +414,6 @@ class Bank(Base):
         for token in tokens:
             self.token_infos[token.currency_code] = token
         self.height = db_manage.get("height", int, 0)
+
+
+

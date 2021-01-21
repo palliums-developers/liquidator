@@ -1,13 +1,13 @@
 def new_mantissa(a, b):
     c = a << 64
     d = b << 32
-    e = c // d
+    e = c / d
     return int(e)
 
 
 def mantissa_div(a, b):
     c = a << 32
-    d = c // b
+    d = c / b
     return int(d)
 
 
