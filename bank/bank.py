@@ -17,7 +17,6 @@ class Bank(Base):
     height: int
     accounts: Dict[str, AccountView]
     token_infos: Dict[str, TokenInfo]
-    currency_ids: Dict[str, int]
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
