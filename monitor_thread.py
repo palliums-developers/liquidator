@@ -16,19 +16,20 @@ class MonitorThread(Thread):
     def run(self):
         while True:
             try:
-                token_infos = self.client.get_account_state(self.client.get_bank_owner_address()).get_token_info_store_resource(accrue_interest=False).tokens
-                accounts = copy.deepcopy(self.bank.accounts)
+                bank = copy.deepcopy(self.bank)
+                version = bank.height
+                token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(accrue_interest=False).tokens
+                accounts = bank.accounts
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
                     index = self.client.bank_get_currency_index(currency_code=currency)
                     currency_info = token_infos[index: index+2]
-                    contract_value = self.client.bank_get_amount(self.client.BANK_OWNER_ADDRESS, currency)
+                    index = self.client.bank_get_currency_index(currency)
+                    state = self.client.get_account_state(self.client.BANK_OWNER_ADDRESS, version)
+                    contract_value = state.get_bank_amount(index)
                     self.assert_token_consistence(currency, currency_info, contract_value)
-                start_time = time.time()
                 for addr in accounts.keys():
-                    self.assert_account_consistence(addr, self.client.get_account_state(addr).get_tokens_resource())
-                end_time = time.time()
-                # print(f"checkout {len(accounts)} need {end_time-start_time} s")
+                    self.assert_account_consistence(addr, self.client.get_account_state(addr, version).get_tokens_resource())
                 time.sleep(self.INTERVAL)
             except Exception as e:
                 print("monitor_thread")

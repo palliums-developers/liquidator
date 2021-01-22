@@ -168,6 +168,7 @@ class Bank(Base):
             price = oracle_price
         token_info.accrue_interest(timestamps)
         token_info.update_exchange_rate()
+        print(token_info.exchange_rate)
         account = self.get_account(tx.get_sender())
         if account.add_lock(currency_code, tx.get_amount(), self.token_infos) < 1:
             ret.append(account.address)
