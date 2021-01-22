@@ -72,7 +72,9 @@ class ScannerThread(Thread):
         for currency in currencies:
             index = self.client.bank_get_currency_index(currency_code=currency)
             currency_info = token_infos[index: index + 2]
-            contract_value = self.client.bank_get_amount(self.client.BANK_OWNER_ADDRESS, currency)
+            index = self.client.bank_get_currency_index(currency)
+            state = self.client.get_account_state(self.client.BANK_OWNER_ADDRESS, version)
+            contract_value = state.get_bank_amount(index)
             self.assert_token_consistence(currency, currency_info, contract_value)
 
     def assert_token_consistence(self, currency, token_infos, contract_value):
