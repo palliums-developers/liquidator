@@ -95,7 +95,7 @@ class Bank(Base):
         code_type = tx.get_code_type()
         hander = self.handers.get(code_type)
         if hander is not None:
-            hander(tx)
+            return hander(tx)
 
     def add_publish(self, tx):
         '''

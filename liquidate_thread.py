@@ -92,7 +92,7 @@ class LiquidateBorrowThread(Thread):
         borrow_value = self.client.bank_get_total_borrow_value(addr)
         owe_value = borrow_value - lock_value
         if owe_value > LIQUIDATE_LIMIT:
-            ''' 获取清算的币和偿还的币，以获取清算的最大金额'''
+            ''' 获取清算的币和偿还的币，以获取清算的最大金额 '''
             owner_state = self.client.get_account_state(self.client.get_bank_owner_address())
             token_info_stores = owner_state.get_token_info_store_resource()
             max_lock_currency, max_lock_value = self.get_max_lock_currency(token_info_stores, addr)
@@ -197,7 +197,6 @@ class BackLiquidatorThread(Thread):
 
 
 
-            
 
 if __name__ == "__main__":
     q = Queue()
