@@ -42,6 +42,7 @@ class ScannerThread(Thread):
                         addrs = self.bank.add_tx(tx)
                         if addrs is not None:
                             v = tx.get_version()
+                            print(v)
                             self.check_token(v)
                         if self.state == self.UPDATED:
                             if addrs is not None:
