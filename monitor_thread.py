@@ -16,18 +16,18 @@ class MonitorThread(Thread):
     def run(self):
         while True:
             try:
-                bank = copy.deepcopy(self.bank)
-                version = bank.height
-                token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(accrue_interest=False).tokens
-                accounts = bank.accounts
+                version = self.bank.height
+                local_token_infos = copy.deepcopy(self.bank.token_infos)
+                chain_token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(accrue_interest=False).tokens
+                accounts = copy.deepcopy(self.bank.accounts)
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
                     index = self.client.bank_get_currency_index(currency_code=currency)
-                    currency_info = token_infos[index: index+2]
+                    currency_info = chain_token_infos[index: index+2]
                     index = self.client.bank_get_currency_index(currency)
                     state = self.client.get_account_state(self.client.BANK_OWNER_ADDRESS, version)
                     contract_value = state.get_bank_amount(index)
-                    self.assert_token_consistence(currency, currency_info, contract_value)
+                    self.assert_token_consistence(local_token_infos, currency, currency_info, contract_value)
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr, version).get_tokens_resource())
                 time.sleep(self.INTERVAL)
@@ -62,9 +62,9 @@ class MonitorThread(Thread):
             assert tokens.ts[i+1].value == value
             i +=2
 
-    def assert_token_consistence(self, currency, token_infos, contract_value):
+    def assert_token_consistence(self, local_token_infos, currency, token_infos, contract_value):
         # print(f"checkout {currency}")
-        local_info = self.bank.get_token_info(currency)
+        local_info = local_token_infos.get(currency)
         assert token_infos[1].total_supply == local_info.total_supply
         assert token_infos[0].total_reserves == local_info.total_reserves
         assert token_infos[0].total_borrows == local_info.total_borrows
