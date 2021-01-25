@@ -1,6 +1,6 @@
-from bank.bank import Bank
-import copy
-bank = Bank()
-b = copy.deepcopy(bank)
-bank.height = 1
-print(b.height)
+from violas_client import Client
+
+
+client = Client("violas_testnet")
+state = client.get_account_state(client.BANK_OWNER_ADDRESS)
+print(state.get_token_info_store_resource(False))
