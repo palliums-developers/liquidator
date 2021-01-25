@@ -40,6 +40,8 @@ class ScannerThread(Thread):
                         continue
                     if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
                         addrs = self.bank.add_tx(tx)
+                        version = tx.get_version
+                        self.check_token(version)
                         if self.state == self.UPDATED:
                             if addrs is not None:
                                 for addr in addrs:
@@ -60,4 +62,29 @@ class ScannerThread(Thread):
                 traceback.print_exc()
                 time.sleep(2)
 
+
+    def check_token(self, version):
+        chain_token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(
+            accrue_interest=False).tokens
+        currencies = self.client.bank_get_registered_currencies(True)
+        for currency in currencies:
+            index = self.client.bank_get_currency_index(currency_code=currency)
+            currency_info = chain_token_infos[index: index + 2]
+            self.assert_token_consistence(self.bank.token_infos, currency, currency_info)
+
+
+    def assert_token_consistence(self, local_token_infos, currency, token_infos):
+        # print(f"checkout {currency}")
+        local_info = local_token_infos.get(currency)
+        assert token_infos[1].total_supply == local_info.total_supply
+        assert token_infos[0].total_reserves == local_info.total_reserves
+        assert token_infos[0].total_borrows == local_info.total_borrows
+        assert token_infos[0].borrow_index == local_info.borrow_index
+        assert token_infos[0].price == local_info.price
+        assert token_infos[0].collateral_factor == local_info.collateral_factor
+        assert token_infos[0].base_rate == local_info.base_rate
+        assert token_infos[0].rate_multiplier == local_info.rate_multiplier
+        assert token_infos[0].rate_jump_multiplier == local_info.rate_jump_multiplier
+        assert token_infos[0].rate_kink == local_info.rate_kink
+        assert token_infos[0].last_minute == local_info.last_minute
 
