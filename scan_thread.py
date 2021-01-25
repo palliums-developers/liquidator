@@ -30,7 +30,7 @@ class ScannerThread(Thread):
         db_height = self.bank.height
 
         while True:
-            try:
+            # try:
                 txs = self.client.get_transactions(self.bank.height, limit)
                 if len(txs) == 0:
                     time.sleep(1)
@@ -58,10 +58,10 @@ class ScannerThread(Thread):
                     self.bank.update_to_db()
                     self.coin_porter.update_to_db()
                     db_height = self.bank.height
-            except Exception as e:
-                print("scan_thread")
-                traceback.print_exc()
-                time.sleep(2)
+            # except Exception as e:
+            #     print("scan_thread")
+            #     traceback.print_exc()
+            #     time.sleep(2)
 
 
     def check_token(self, version):
