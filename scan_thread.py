@@ -40,7 +40,7 @@ class ScannerThread(Thread):
                         continue
                     if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
                         addrs = self.bank.add_tx(tx)
-                        version = tx.get_version
+                        version = tx.get_version()
                         print(version)
                         self.check_token(version)
                         if self.state == self.UPDATED:
