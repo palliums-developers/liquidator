@@ -66,14 +66,17 @@ class ScannerThread(Thread):
 
 
     def check_token(self, version):
-        chain_token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(
-            accrue_interest=False).tokens
-        currencies = self.client.bank_get_registered_currencies(True)
-        for currency in currencies:
-            index = self.client.bank_get_currency_index(currency_code=currency)
-            currency_info = chain_token_infos[index: index + 2]
-            self.assert_token_consistence(self.bank.token_infos, currency, currency_info)
-
+        from violas_client.error.error import LibraError
+        try:
+            chain_token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(
+                accrue_interest=False).tokens
+            currencies = self.client.bank_get_registered_currencies(True)
+            for currency in currencies:
+                index = self.client.bank_get_currency_index(currency_code=currency)
+                currency_info = chain_token_infos[index: index + 2]
+                self.assert_token_consistence(self.bank.token_infos, currency, currency_info)
+        except LibraError:
+            pass
 
     def assert_token_consistence(self, local_token_infos, currency, token_infos):
         # print(f"checkout {currency}")
