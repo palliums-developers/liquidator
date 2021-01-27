@@ -67,25 +67,25 @@ class ScannerThread(Thread):
             #     time.sleep(2)
 
     def check_account(self, addr, version):
-        self.assert_account_consistence(addr, self.client.get_account_state(addr, version).get_tokens_resource())
-
-    def assert_account_consistence(self, address, tokens):
         try:
-            # print(f"check {address}")
-            if isinstance(address, bytes):
-                address = address.hex()
-            i = 0
-            while len(tokens.borrows) > i:
-                currency = self.client.bank_get_currency_code(i)
-                borrows = self.bank.accounts[address].borrow_amounts.amounts.get(currency)
-                if borrows is None:
-                    assert tokens.borrows[i].principal == 0
-                else:
-                    assert tokens.borrows[i].principal == borrows[0]
-                    assert tokens.borrows[i].interest_index == borrows[1]
-                i += 2
+            self.assert_account_consistence(addr, self.client.get_account_state(addr, version).get_tokens_resource())
         except LibraError:
             pass
+
+    def assert_account_consistence(self, address, tokens):
+        # print(f"check {address}")
+        if isinstance(address, bytes):
+            address = address.hex()
+        i = 0
+        while len(tokens.borrows) > i:
+            currency = self.client.bank_get_currency_code(i)
+            borrows = self.bank.accounts[address].borrow_amounts.amounts.get(currency)
+            if borrows is None:
+                assert tokens.borrows[i].principal == 0
+            else:
+                assert tokens.borrows[i].principal == borrows[0]
+                assert tokens.borrows[i].interest_index == borrows[1]
+            i += 2
 
     def check_token(self, version):
         try:
