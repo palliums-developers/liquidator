@@ -9,6 +9,10 @@ from violas_client.banktypes.bytecode import CodeType as BankCodeType
 from violas_client.vlstypes.view import TransactionView
 from violas_client.oracle_client.bytecodes import CodeType as OracleCodType
 from network import create_database_manager
+from threading import Lock
+
+bank_lock = Lock()
+
 
 @dataclasses.dataclass(init=False)
 class Bank(Base):
@@ -95,7 +99,10 @@ class Bank(Base):
         code_type = tx.get_code_type()
         hander = self.handers.get(code_type)
         if hander is not None:
-            return hander(tx)
+            bank_lock.acquire()
+            ret = hander(tx)
+            bank_lock.release()
+            return ret
 
     def add_publish(self, tx):
         '''

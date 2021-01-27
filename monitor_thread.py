@@ -4,6 +4,7 @@ import traceback
 from threading import Thread
 from network import create_violas_client
 from bank import Bank
+from bank.bank import bank_lock
 
 class MonitorThread(Thread):
     INTERVAL = 60
@@ -16,10 +17,12 @@ class MonitorThread(Thread):
     def run(self):
         while True:
             try:
+                bank_lock.acquire()
                 version = self.bank.height
                 local_token_infos = copy.deepcopy(self.bank.token_infos)
-                chain_token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(accrue_interest=False).tokens
                 accounts = copy.deepcopy(self.bank.accounts)
+                bank_lock.release()
+                chain_token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(accrue_interest=False).tokens
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
                     index = self.client.bank_get_currency_index(currency_code=currency)
@@ -67,7 +70,6 @@ class MonitorThread(Thread):
         local_info = local_token_infos.get(currency)
         assert token_infos[1].total_supply == local_info.total_supply
         assert token_infos[0].total_reserves == local_info.total_reserves
-        print(token_infos[0].total_borrows, local_info.total_borrows)
         assert token_infos[0].total_borrows == local_info.total_borrows
         assert token_infos[0].borrow_index == local_info.borrow_index
         assert token_infos[0].price == local_info.price

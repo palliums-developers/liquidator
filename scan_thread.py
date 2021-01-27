@@ -30,7 +30,7 @@ class ScannerThread(Thread):
         db_height = self.bank.height
 
         while True:
-            # try:
+            try:
                 txs = self.client.get_transactions(self.bank.height, limit)
                 if len(txs) == 0:
                     time.sleep(1)
@@ -40,10 +40,10 @@ class ScannerThread(Thread):
                         continue
                     if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
                         addrs = self.bank.add_tx(tx)
-                        if addrs is not None:
-                            version = tx.get_version()
-                            print(version)
-                            self.check_token(version)
+                        # if addrs is not None:
+                        #     version = tx.get_version()
+                        #     print(version)
+                        #     self.check_token(version)
                         if self.state == self.UPDATED:
                             if addrs is not None:
                                 for addr in addrs:
@@ -59,10 +59,10 @@ class ScannerThread(Thread):
                     self.bank.update_to_db()
                     self.coin_porter.update_to_db()
                     db_height = self.bank.height
-            # except Exception as e:
-            #     print("scan_thread")
-            #     traceback.print_exc()
-            #     time.sleep(2)
+            except Exception as e:
+                print("scan_thread")
+                traceback.print_exc()
+                time.sleep(2)
 
 
     def check_token(self, version):
@@ -81,7 +81,6 @@ class ScannerThread(Thread):
     def assert_token_consistence(self, local_token_infos, currency, token_infos):
         # print(f"checkout {currency}")
         local_info = local_token_infos.get(currency)
-        print(token_infos[1].total_supply, local_info.total_supply)
         assert token_infos[1].total_supply == local_info.total_supply
         assert token_infos[0].total_reserves == local_info.total_reserves
         assert token_infos[0].total_borrows == local_info.total_borrows
