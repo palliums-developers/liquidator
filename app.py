@@ -30,10 +30,10 @@ if __name__ == "__main__":
             liquidator_thread = LiquidateBorrowThread(unhealth_queue)
             liquidator_thread.setDaemon(True)
             liquidator_thread.start()
-            #
-            # back_liquidator_thread = BackLiquidatorThread()
-            # back_liquidator_thread.setDaemon(True)
-            # back_liquidator_thread.start()
+
+            back_liquidator_thread = BackLiquidatorThread()
+            back_liquidator_thread.setDaemon(True)
+            back_liquidator_thread.start()
             break
 
     monitor_thread = MonitorThread()

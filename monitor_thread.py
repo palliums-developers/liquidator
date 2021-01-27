@@ -19,7 +19,6 @@ class MonitorThread(Thread):
             try:
                 bank_lock.acquire()
                 version = self.bank.height
-                print(version)
                 local_token_infos = copy.deepcopy(self.bank.token_infos)
                 accounts = copy.deepcopy(self.bank.accounts)
                 bank_lock.release()
