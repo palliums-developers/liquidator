@@ -9,6 +9,8 @@ from bank import Bank
 from coin_porter import CoinPorter
 from violas_client.lbrtypes.bytecode import CodeType
 from network import create_violas_client
+from violas_client.error.error import LibraError
+
 
 class ScannerThread(Thread):
 
@@ -68,33 +70,35 @@ class ScannerThread(Thread):
         self.assert_account_consistence(addr, self.client.get_account_state(addr, version).get_tokens_resource())
 
     def assert_account_consistence(self, address, tokens):
-        # print(f"check {address}")
-        if isinstance(address, bytes):
-            address = address.hex()
-        i = 0
-        while len(tokens.borrows) > i:
-            currency = self.client.bank_get_currency_code(i)
-            borrows = self.bank.accounts[address].borrow_amounts.amounts.get(currency)
-            if borrows is None:
-                assert tokens.borrows[i].principal == 0
-            else:
-                assert tokens.borrows[i].principal == borrows[0]
-                assert tokens.borrows[i].interest_index == borrows[1]
-            i += 2
+        try:
+            # print(f"check {address}")
+            if isinstance(address, bytes):
+                address = address.hex()
+            i = 0
+            while len(tokens.borrows) > i:
+                currency = self.client.bank_get_currency_code(i)
+                borrows = self.bank.accounts[address].borrow_amounts.amounts.get(currency)
+                if borrows is None:
+                    assert tokens.borrows[i].principal == 0
+                else:
+                    assert tokens.borrows[i].principal == borrows[0]
+                    assert tokens.borrows[i].interest_index == borrows[1]
+                i += 2
 
-        i = 0
-        while len(tokens.borrows) > i:
-            currency = self.client.bank_get_currency_code(i)
-            locks = self.bank.accounts[address].lock_amounts.amounts
-            value = locks.get(currency)
-            if value is None:
-                value = 0
-            #存款数据
-            assert tokens.ts[i+1].value == value
-            i +=2
+            i = 0
+            while len(tokens.borrows) > i:
+                currency = self.client.bank_get_currency_code(i)
+                locks = self.bank.accounts[address].lock_amounts.amounts
+                value = locks.get(currency)
+                if value is None:
+                    value = 0
+                #存款数据
+                assert tokens.ts[i+1].value == value
+                i +=2
+        except LibraError:
+            pass
 
     def check_token(self, version):
-        from violas_client.error.error import LibraError
         try:
             chain_token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(
                 accrue_interest=False).tokens
