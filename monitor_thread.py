@@ -69,6 +69,7 @@ class MonitorThread(Thread):
         # print(f"checkout {currency}")
         local_info = local_token_infos.get(currency)
         assert token_infos[1].total_supply == local_info.total_supply
+        print("reserves", token_infos[0].total_reserves, local_info.total_reserves)
         assert token_infos[0].total_reserves == local_info.total_reserves
         assert token_infos[0].total_borrows == local_info.total_borrows
         assert token_infos[0].borrow_index == local_info.borrow_index
