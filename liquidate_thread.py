@@ -125,8 +125,8 @@ class LiquidateBorrowThread(Thread):
                 print(addr, max_borrow_currency, max_lock_currency, liquidate_amount)
             finally:
                 self.coin_porter.add_last_liquidate_id(max_borrow_currency)
-                print("liquidator_id:", self.coin_porter.last_liquidate_ids)
-                print("apply_id:", self.coin_porter.last_apply_ids)
+                # print("liquidator_id:", self.coin_porter.last_liquidate_ids)
+                # print("apply_id:", self.coin_porter.last_apply_ids)
 
 class BackLiquidatorThread(Thread):
     # 拥有的最大的值

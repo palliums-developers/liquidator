@@ -12,8 +12,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    print("len=", len(Bank().accounts))
     return Bank().to_json()
+
 
 
 if __name__ == "__main__":
@@ -27,13 +27,13 @@ if __name__ == "__main__":
             update_state_thread = CheckerThread(unhealth_queue)
             update_state_thread.setDaemon(True)
             update_state_thread.start()
-            # liquidator_thread = LiquidateBorrowThread(unhealth_queue)
-            # liquidator_thread.setDaemon(True)
-            # liquidator_thread.start()
-            #
-            # back_liquidator_thread = BackLiquidatorThread()
-            # back_liquidator_thread.setDaemon(True)
-            # back_liquidator_thread.start()
+            liquidator_thread = LiquidateBorrowThread(unhealth_queue)
+            liquidator_thread.setDaemon(True)
+            liquidator_thread.start()
+
+            back_liquidator_thread = BackLiquidatorThread()
+            back_liquidator_thread.setDaemon(True)
+            back_liquidator_thread.start()
             break
 
     monitor_thread = MonitorThread()

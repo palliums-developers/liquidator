@@ -95,12 +95,16 @@ class AccountView(Base):
     lock_amounts: AccountLockAmounts
     borrow_amounts: AccountBorrowAmounts
     health: int
+    total_borrow: int
+    total_lock: int
 
     def __init__(self, address, lock_amounts=None, borrow_amounts=None, health=None):
         self.address = address
         self.lock_amounts = lock_amounts or AccountLockAmounts()
         self.borrow_amounts = borrow_amounts or AccountBorrowAmounts()
         self.health = health or sys.maxsize
+        self.total_borrow = 0
+        self.total_lock = 0
 
     def add_borrow(self, currency_code, amount, token_infos):
         borrow_index = token_infos.get(currency_code).borrow_index
@@ -160,6 +164,8 @@ class AccountView(Base):
         return self.lock_amounts.get_total_collateral_value(token_infos)
 
     def update_health_state(self, token_infos):
+        self.total_lock = self.get_total_collateral_value(token_infos)
+        self.total_borrow = self.get_total_borrow_value(token_infos)
         if self.has_borrow_any():
             borrow_value = self.borrow_amounts.get_total_borrow_value(token_infos)
             collateral_value = self.lock_amounts.get_total_collateral_value(token_infos)
