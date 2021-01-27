@@ -57,10 +57,10 @@ class ScannerThread(Thread):
                 self.bank.height += len(txs)
                 if self.state == self.UPDATING and len(txs) < limit:
                     self.state = self.UPDATED
-                if self.bank.height - db_height >= 100_000:
-                    self.bank.update_to_db()
-                    self.coin_porter.update_to_db()
-                    db_height = self.bank.height
+                # if self.bank.height - db_height >= 100_000:
+                #     self.bank.update_to_db()
+                #     self.coin_porter.update_to_db()
+                #     db_height = self.bank.height
             # except Exception as e:
             #     print("scan_thread")
             #     traceback.print_exc()
@@ -70,7 +70,9 @@ class ScannerThread(Thread):
         try:
             state = self.client.get_account_state(addr, version)
             if state:
-                self.assert_account_consistence(addr,state.get_tokens_resource())
+                tokens = state.get_tokens_resource()
+                if tokens:
+                    self.assert_account_consistence(addr,state.get_tokens_resource())
         except LibraError:
             pass
 
