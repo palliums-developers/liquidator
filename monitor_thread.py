@@ -50,6 +50,7 @@ class MonitorThread(Thread):
             if borrows is None:
                 assert tokens.borrows[i].principal == 0
             else:
+                print(address, tokens.borrows[i].principal, borrows[0])
                 assert tokens.borrows[i].principal == borrows[0]
                 assert tokens.borrows[i].interest_index == borrows[1]
             i += 2
