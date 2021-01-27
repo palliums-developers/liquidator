@@ -98,13 +98,13 @@ class AccountView(Base):
     total_borrow: int
     total_lock: int
 
-    def __init__(self, address, lock_amounts=None, borrow_amounts=None, health=None):
+    def __init__(self, address, lock_amounts=None, borrow_amounts=None, health=None,total_borrow=None, total_lock=None):
         self.address = address
         self.lock_amounts = lock_amounts or AccountLockAmounts()
         self.borrow_amounts = borrow_amounts or AccountBorrowAmounts()
         self.health = health or sys.maxsize
-        self.total_borrow = 0
-        self.total_lock = 0
+        self.total_borrow = total_borrow or 0
+        self.total_lock = total_lock or 0
 
     def add_borrow(self, currency_code, amount, token_infos):
         borrow_index = token_infos.get(currency_code).borrow_index
