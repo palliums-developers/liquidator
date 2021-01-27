@@ -81,6 +81,7 @@ class ScannerThread(Thread):
     def assert_token_consistence(self, local_token_infos, currency, token_infos):
         # print(f"checkout {currency}")
         local_info = local_token_infos.get(currency)
+        print(token_infos[1].total_supply, local_info.total_supply)
         assert token_infos[1].total_supply == local_info.total_supply
         assert token_infos[0].total_reserves == local_info.total_reserves
         assert token_infos[0].total_borrows == local_info.total_borrows
