@@ -84,17 +84,6 @@ class ScannerThread(Thread):
                     assert tokens.borrows[i].principal == borrows[0]
                     assert tokens.borrows[i].interest_index == borrows[1]
                 i += 2
-
-            i = 0
-            while len(tokens.borrows) > i:
-                currency = self.client.bank_get_currency_code(i)
-                locks = self.bank.accounts[address].lock_amounts.amounts
-                value = locks.get(currency)
-                if value is None:
-                    value = 0
-                #存款数据
-                assert tokens.ts[i+1].value == value
-                i +=2
         except LibraError:
             pass
 
