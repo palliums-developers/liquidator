@@ -30,7 +30,7 @@ class ScannerThread(Thread):
         db_height = self.bank.height
 
         while True:
-            try:
+            # try:
                 txs = self.client.get_transactions(self.bank.height, limit)
                 if len(txs) == 0:
                     time.sleep(1)
@@ -40,10 +40,10 @@ class ScannerThread(Thread):
                         continue
                     if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
                         addrs = self.bank.add_tx(tx)
-                        # if addrs is not None:
-                        #     version = tx.get_version()
-                        #     print(version)
-                        #     self.check_token(version)
+                        if addrs is not None:
+                            version = tx.get_version()
+                            print(version)
+                            self.check_account("2a99d1954c1fdd527aca504844326005", version)
                         if self.state == self.UPDATED:
                             if addrs is not None:
                                 for addr in addrs:
@@ -59,11 +59,39 @@ class ScannerThread(Thread):
                     self.bank.update_to_db()
                     self.coin_porter.update_to_db()
                     db_height = self.bank.height
-            except Exception as e:
-                print("scan_thread")
-                traceback.print_exc()
-                time.sleep(2)
+            # except Exception as e:
+            #     print("scan_thread")
+            #     traceback.print_exc()
+            #     time.sleep(2)
 
+    def check_account(self, addr, version):
+        self.assert_account_consistence(addr, self.client.get_account_state(addr, version).get_tokens_resource())
+
+    def assert_account_consistence(self, address, tokens):
+        # print(f"check {address}")
+        if isinstance(address, bytes):
+            address = address.hex()
+        i = 0
+        while len(tokens.borrows) > i:
+            currency = self.client.bank_get_currency_code(i)
+            borrows = self.bank.accounts[address].borrow_amounts.amounts.get(currency)
+            if borrows is None:
+                assert tokens.borrows[i].principal == 0
+            else:
+                assert tokens.borrows[i].principal == borrows[0]
+                assert tokens.borrows[i].interest_index == borrows[1]
+            i += 2
+
+        i = 0
+        while len(tokens.borrows) > i:
+            currency = self.client.bank_get_currency_code(i)
+            locks = self.bank.accounts[address].lock_amounts.amounts
+            value = locks.get(currency)
+            if value is None:
+                value = 0
+            #存款数据
+            assert tokens.ts[i+1].value == value
+            i +=2
 
     def check_token(self, version):
         from violas_client.error.error import LibraError
