@@ -68,7 +68,9 @@ class ScannerThread(Thread):
 
     def check_account(self, addr, version):
         try:
-            self.assert_account_consistence(addr, self.client.get_account_state(addr, version).get_tokens_resource())
+            state = self.client.get_account_state(addr, version)
+            if state:
+                self.assert_account_consistence(addr,state.get_tokens_resource())
         except LibraError:
             pass
 
