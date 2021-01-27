@@ -38,6 +38,7 @@ class ScannerThread(Thread):
                     time.sleep(1)
                     continue
                 for index, tx in enumerate(txs):
+                    self.bank.height += 1
                     if tx.get_code_type() == CodeType.UNKNOWN:
                         continue
                     if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
@@ -54,7 +55,6 @@ class ScannerThread(Thread):
                         if self.state == self.UPDATING:
                             self.coin_porter.add_tx(tx)
 
-                self.bank.height += len(txs)
                 if self.state == self.UPDATING and len(txs) < limit:
                     self.state = self.UPDATED
                 if self.bank.height - db_height >= 100_000:

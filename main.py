@@ -3,13 +3,7 @@ from bank import Bank
 import copy
 
 
-# client = Client("violas_testnet")
-# state = client.get_account_state(client.get_account_state())
-# print(state.get_tokens_resource())
+client = Client("violas_testnet")
+state = client.get_account_state(client.BANK_OWNER_ADDRESS, 12481870)
+print(state.get_token_info_store_resource(accrue_interest=False))
 
-
-bank = Bank()
-token_info = copy.deepcopy(bank.token_infos)
-token_info["token"] = "info"
-print(bank.token_infos)
-print(token_info)
