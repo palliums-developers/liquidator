@@ -42,10 +42,10 @@ class ScannerThread(Thread):
                         continue
                     if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
                         addrs = self.bank.add_tx(tx)
-                        if addrs is not None:
-                            version = tx.get_version()
-                            print(version)
-                            self.check_account("2a99d1954c1fdd527aca504844326005", version)
+                        # if addrs is not None:
+                        #     version = tx.get_version()
+                        #     print(version)
+                        #     self.check_account("2a99d1954c1fdd527aca504844326005", version)
                         if self.state == self.UPDATED:
                             if addrs is not None:
                                 for addr in addrs:
@@ -57,10 +57,10 @@ class ScannerThread(Thread):
                 self.bank.height += len(txs)
                 if self.state == self.UPDATING and len(txs) < limit:
                     self.state = self.UPDATED
-                # if self.bank.height - db_height >= 100_000:
-                #     self.bank.update_to_db()
-                #     self.coin_porter.update_to_db()
-                #     db_height = self.bank.height
+                if self.bank.height - db_height >= 100_000:
+                    self.bank.update_to_db()
+                    self.coin_porter.update_to_db()
+                    db_height = self.bank.height
             # except Exception as e:
             #     print("scan_thread")
             #     traceback.print_exc()

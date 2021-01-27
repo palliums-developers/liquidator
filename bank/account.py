@@ -134,7 +134,7 @@ class AccountView(Base):
     def add_liquidate_borrow_to_borrower(self, collateral_currency_code, collateral_amount,
                                          currency_code, amount, token_infos):
         self.lock_amounts.reduce_original_amount(collateral_currency_code, collateral_amount)
-        self.borrow_amounts.reduce_amount(currency_code, amount, token_infos.get(collateral_currency_code).borrow_index)
+        self.borrow_amounts.reduce_amount(currency_code, amount, token_infos.get(currency_code).borrow_index)
         self.update_health_state(token_infos)
         return self.health
 
