@@ -19,9 +19,11 @@ class MonitorThread(Thread):
             try:
                 bank_lock.acquire()
                 version = self.bank.height
+                print(version)
                 local_token_infos = copy.deepcopy(self.bank.token_infos)
                 accounts = copy.deepcopy(self.bank.accounts)
                 bank_lock.release()
+                time.sleep(self.INTERVAL)
                 chain_token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(accrue_interest=False).tokens
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
@@ -33,7 +35,6 @@ class MonitorThread(Thread):
                     self.assert_token_consistence(local_token_infos, currency, currency_info, contract_value)
                 for addr in accounts.keys():
                     self.assert_account_consistence(addr, self.client.get_account_state(addr, version).get_tokens_resource())
-                time.sleep(self.INTERVAL)
             except Exception as e:
                 print("monitor_thread")
                 traceback.print_exc()
@@ -50,6 +51,7 @@ class MonitorThread(Thread):
             if borrows is None:
                 assert tokens.borrows[i].principal == 0
             else:
+                print(address, tokens.borrows[i].principal, borrows[0])
                 assert tokens.borrows[i].principal == borrows[0]
                 assert tokens.borrows[i].interest_index == borrows[1]
             i += 2
