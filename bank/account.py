@@ -97,14 +97,17 @@ class AccountView(Base):
     health: int
     total_borrow: int
     total_lock: int
+    owe_amount: int
 
-    def __init__(self, address, lock_amounts=None, borrow_amounts=None, health=None,total_borrow=None, total_lock=None):
+    def __init__(self, address, lock_amounts=None, borrow_amounts=None, health=None,total_borrow=None, total_lock=None, owe_amount=None):
         self.address = address
         self.lock_amounts = lock_amounts or AccountLockAmounts()
         self.borrow_amounts = borrow_amounts or AccountBorrowAmounts()
         self.health = health or sys.maxsize
         self.total_borrow = total_borrow or 0
         self.total_lock = total_lock or 0
+        self.owe_amount = owe_amount
+
 
     def add_borrow(self, currency_code, amount, token_infos):
         borrow_index = token_infos.get(currency_code).borrow_index
@@ -166,6 +169,7 @@ class AccountView(Base):
     def update_health_state(self, token_infos):
         self.total_lock = self.get_total_collateral_value(token_infos)
         self.total_borrow = self.get_total_borrow_value(token_infos)
+        self.owe_amount = (self.total_borrow - self.total_lock) / 1_000_000
         if self.has_borrow_any():
             borrow_value = self.borrow_amounts.get_total_borrow_value(token_infos)
             collateral_value = self.lock_amounts.get_total_collateral_value(token_infos)
