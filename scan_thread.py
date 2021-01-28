@@ -10,6 +10,7 @@ from coin_porter import CoinPorter
 from violas_client.lbrtypes.bytecode import CodeType
 from network import create_violas_client
 from violas_client.error.error import LibraError
+from bank.bank import bank_lock
 
 
 class ScannerThread(Thread):
@@ -38,22 +39,21 @@ class ScannerThread(Thread):
                     time.sleep(1)
                     continue
                 for index, tx in enumerate(txs):
+                    bank_lock.acquire()
                     self.bank.height += 1
-                    if tx.get_code_type() == CodeType.UNKNOWN:
-                        continue
-                    if tx.get_code_type() != CodeType.BLOCK_METADATA and tx.is_successful():
-                        addrs = self.bank.add_tx(tx)
-                        # if addrs is not None:
-                        #     version = tx.get_version()
-                        #     print(version)
-                        #     self.check_account("2a99d1954c1fdd527aca504844326005", version)
-                        if self.state == self.UPDATED:
-                            if addrs is not None:
-                                for addr in addrs:
-                                    self.queue.put(addr)
+                    addrs = self.bank.add_tx(tx)
+                    bank_lock.release()
+                    # if addrs is not None:
+                    #     version = tx.get_version()
+                    #     print(version)
+                    #     self.check_account("29e9db87cb692c3e63ef883f62405947", version)
+                    if self.state == self.UPDATED:
+                        if addrs is not None:
+                            for addr in addrs:
+                                self.queue.put(addr)
 
-                        if self.state == self.UPDATING:
-                            self.coin_porter.add_tx(tx)
+                    if self.state == self.UPDATING:
+                        self.coin_porter.add_tx(tx)
 
                 if self.state == self.UPDATING and len(txs) < limit:
                     self.state = self.UPDATED
