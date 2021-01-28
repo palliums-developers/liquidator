@@ -2,7 +2,8 @@ from violas_client import Client
 from bank import Bank
 import copy
 
-bank = Bank()
-h = bank.height
-h  = 2
-print(bank.height)
+
+client = Client("violas_testnet")
+state = client.get_account_state("8ac60db3f51254ab93665f26f1349828")
+print(state.get_tokens_resource())
+

@@ -19,7 +19,6 @@ class MonitorThread(Thread):
             try:
                 bank_lock.acquire()
                 version = self.bank.height
-                print(version)
                 local_token_infos = copy.deepcopy(self.bank.token_infos)
                 accounts = copy.deepcopy(self.bank.accounts)
                 bank_lock.release()
@@ -34,24 +33,23 @@ class MonitorThread(Thread):
                     contract_value = state.get_bank_amount(index)
                     self.assert_token_consistence(local_token_infos, currency, currency_info, contract_value)
                 for addr in accounts.keys():
-                    self.assert_account_consistence(addr, self.client.get_account_state(addr, version).get_tokens_resource())
+                    self.assert_account_consistence(addr, accounts, self.client.get_account_state(addr, version).get_tokens_resource())
             except Exception as e:
                 print("monitor_thread")
                 traceback.print_exc()
                 time.sleep(2)
 
-    def assert_account_consistence(self, address, tokens):
+    def assert_account_consistence(self, local_accounts, address, tokens):
         # print(f"check {address}")
         if isinstance(address, bytes):
             address = address.hex()
         i = 0
         while len(tokens.borrows) > i:
             currency = self.client.bank_get_currency_code(i)
-            borrows = self.bank.accounts[address].borrow_amounts.amounts.get(currency)
+            borrows = local_accounts[address].borrow_amounts.amounts.get(currency)
             if borrows is None:
                 assert tokens.borrows[i].principal == 0
             else:
-                print(address, tokens.borrows[i].principal, borrows[0])
                 assert tokens.borrows[i].principal == borrows[0]
                 assert tokens.borrows[i].interest_index == borrows[1]
             i += 2
@@ -59,7 +57,7 @@ class MonitorThread(Thread):
         i = 0
         while len(tokens.borrows) > i:
             currency = self.client.bank_get_currency_code(i)
-            locks = self.bank.accounts[address].lock_amounts.amounts
+            locks = local_accounts[address].lock_amounts.amounts
             value = locks.get(currency)
             if value is None:
                 value = 0

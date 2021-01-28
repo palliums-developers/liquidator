@@ -6,7 +6,7 @@ RUN apt-get upgrade -y
 
 #Install git
 RUN apt-get install git -y
-RUN git clone  https://Xing-Huang:13583744689edc@github.com/palliums-developers/violas-client.git
+RUN git clone -b v0.30 https://Xing-Huang:13583744689edc@github.com/palliums-developers/violas-client.git
 RUN cp ./violas-client/violas_client /usr/local/lib/python3.8/ -rf
 RUN pip3.8 install -r ./violas-client/requirements.txt
 
