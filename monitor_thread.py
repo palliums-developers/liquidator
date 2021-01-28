@@ -39,7 +39,7 @@ class MonitorThread(Thread):
                 traceback.print_exc()
                 time.sleep(2)
 
-    def assert_account_consistence(self, local_accounts, address, tokens):
+    def assert_account_consistence(self, address, local_accounts, tokens):
         # print(f"check {address}")
         if isinstance(address, bytes):
             address = address.hex()
