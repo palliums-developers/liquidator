@@ -17,7 +17,7 @@ from bank import Bank
 
 
 if __name__ == "__main__":
-    unhealth_queue = Queue(100)
+    unhealth_queue = Queue()
     scanner_thread = ScannerThread(unhealth_queue)
     scanner_thread.setDaemon(True)
     scanner_thread.start()
