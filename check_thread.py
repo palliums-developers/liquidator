@@ -19,9 +19,7 @@ class CheckerThread(Thread):
                     addrs = self.bank.check_borrow_index(cur_time)
                     print("len quene", self.queue.qsize(), len(addrs))
                     for addr in addrs:
-                        print(addr)
                         self.queue.put(addr)
-                    print("end")
                 self.latest_update_time = cur_time
                 time.sleep(60)
             except Exception as e:
