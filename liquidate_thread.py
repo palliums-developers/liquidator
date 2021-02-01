@@ -85,13 +85,10 @@ class LiquidateBorrowThread(Thread):
     def liquidate_borrow(self, addr):
         bank_account_state = self.client.get_account_state(self.bank_account.address)
 
-        '''vls币是否足够，用作 gas fee'''
-        if bank_account_state.get_balance(DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
-            self.try_apply_coin(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
-
         lock_value = self.bank.accounts.get(addr).total_lock
         borrow_value = self.bank.accounts.get(addr).total_borrow
         owe_value = borrow_value - lock_value
+        print(addr, owe_value)
         if owe_value > LIQUIDATE_LIMIT:
             ''' 获取清算的币和偿还的币，以获取清算的最大金额 '''
             max_lock_currency, max_lock_value = self.get_max_lock_currency(addr)
@@ -118,6 +115,10 @@ class LiquidateBorrowThread(Thread):
                 self.client.add_currency_to_account(self.bank_account, max_lock_currency)
 
             try:
+                '''vls币是否足够，用作 gas fee'''
+                if bank_account_state.get_balance(DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
+                    self.try_apply_coin(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
+
                 self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount)
             except Exception as e:
                 localtime = time.asctime(time.localtime(time.time()))
