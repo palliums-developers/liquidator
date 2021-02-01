@@ -83,9 +83,9 @@ class LiquidateBorrowThread(Thread):
         self.coin_porter.try_apply_coin(ac, currency_code, amount)
 
     def liquidate_borrow(self, addr):
-        lock_value = self.bank.accounts.get(addr).total_lock
-        borrow_value = self.bank.accounts.get(addr).total_borrow
-        owe_value = borrow_value - lock_value
+        collateral_value = self.bank.get_total_collateral_value(addr)
+        borrow_value = self.bank.get_total_borrow_value(addr)
+        owe_value = borrow_value - collateral_value
         if owe_value > LIQUIDATE_LIMIT:
             ''' 获取清算的币和偿还的币，以获取清算的最大金额 '''
             max_lock_currency, max_lock_value = self.get_max_lock_currency(addr)
@@ -122,7 +122,7 @@ class LiquidateBorrowThread(Thread):
                 # localtime = time.asctime(time.localtime(time.time()))
                 # traceback.print_exc()
                 # print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
-                print("lock", addr, lock_value, self.client.bank_get_total_collateral_value(addr))
+                print("lock", addr, collateral_value, self.client.bank_get_total_collateral_value(addr))
                 print("borrow", addr, borrow_value, self.client.bank_get_total_borrow_value(addr))
             finally:
                 self.coin_porter.add_last_liquidate_id(max_borrow_currency)

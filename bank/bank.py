@@ -1,5 +1,6 @@
 import dataclasses
 import json
+import time
 from typing import Dict
 from .base import Base
 from .token_info import TokenInfo
@@ -73,6 +74,18 @@ class Bank(Base):
         account = self.accounts.get(addr)
         exchange_rate = self.token_infos.get(currency_code).get_cur_exchange_rate()
         return mantissa_mul(account.lock_amounts.amounts.get(currency_code), exchange_rate)
+
+    def get_total_collateral_value(self, addr):
+        account = self.accounts.get(addr)
+        cur_time = int(time.time() // 60)
+        token_infos = { currency: token_info.get_forecast(cur_time) for currency, token_info in self.token_infos.items()}
+        return account.get_total_collateral_value(token_infos)
+
+    def get_total_borrow_value(self, addr):
+        account = self.accounts.get(addr)
+        cur_time = int(time.time() // 60)
+        token_infos = { currency: token_info.get_forecast(cur_time) for currency, token_info in self.token_infos.items()}
+        return account.get_total_borrow_value(token_infos)
 
     def get_borrow_amount(self, addr, currency_code):
         account = self.accounts.get(addr)
