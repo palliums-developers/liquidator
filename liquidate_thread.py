@@ -120,12 +120,10 @@ class LiquidateBorrowThread(Thread):
                 if bank_account_state.get_balance(DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
                     self.try_apply_coin(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
                 self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount)
-                print(owe_value, liquidate_value)
             except Exception as e:
-                # localtime = time.asctime(time.localtime(time.time()))
-                # traceback.print_exc()
-                # print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
-                print("error", liquidate_value, self.client.bank_get_total_borrow_value(addr) - self.client.bank_get_total_collateral_value(addr))
+                localtime = time.asctime(time.localtime(time.time()))
+                traceback.print_exc()
+                print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
             finally:
                 self.coin_porter.add_last_liquidate_id(max_borrow_currency)
                 # print("liquidator_id:", self.coin_porter.last_liquidate_ids)
