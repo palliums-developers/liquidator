@@ -41,4 +41,6 @@ if __name__ == "__main__":
     monitor_thread.setDaemon(True)
     monitor_thread.start()
 
-    app.run(host="0.0.0.0", port=9000, debug=False)
+    while True:
+        time.sleep(60)
+    # app.run(host="0.0.0.0", port=9000, debug=False)

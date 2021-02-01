@@ -47,10 +47,10 @@ class ScannerThread(Thread):
                     #     version = tx.get_version()
                     #     print(version)
                     #     self.check_account("29e9db87cb692c3e63ef883f62405947", version)
-                    if self.state == self.UPDATED:
-                        if addrs is not None:
-                            for addr in addrs:
-                                self.queue.put(addr)
+                    # if self.state == self.UPDATED:
+                    #     if addrs is not None:
+                    #         for addr in addrs:
+                    #             self.queue.put(addr)
 
                     if self.state == self.UPDATING:
                         self.coin_porter.add_tx(tx)
