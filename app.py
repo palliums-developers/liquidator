@@ -8,11 +8,11 @@ from liquidate_thread import LiquidateBorrowThread, BackLiquidatorThread
 from bank import Bank
 
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
-@app.route('/')
-def index():
-    return Bank().to_json()
+# @app.route('/')
+# def index():
+#     return Bank().to_json()
 
 
 
