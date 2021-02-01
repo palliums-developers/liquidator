@@ -86,7 +86,6 @@ class LiquidateBorrowThread(Thread):
         lock_value = self.bank.accounts.get(addr).total_lock
         borrow_value = self.bank.accounts.get(addr).total_borrow
         owe_value = borrow_value - lock_value
-        print(addr, owe_value)
         if owe_value > LIQUIDATE_LIMIT:
             ''' 获取清算的币和偿还的币，以获取清算的最大金额 '''
             max_lock_currency, max_lock_value = self.get_max_lock_currency(addr)
@@ -106,7 +105,6 @@ class LiquidateBorrowThread(Thread):
 
             liquidate_value = min(bank_value, liquidate_value)
             liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.9)
-            print(liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
 
             '''是否已经注册偿还的币'''
             cs = self.client.get_account_registered_currencies(self.bank_account.address)
@@ -123,6 +121,7 @@ class LiquidateBorrowThread(Thread):
             except Exception as e:
                 localtime = time.asctime(time.localtime(time.time()))
                 traceback.print_exc()
+                print(addr, owe_value, self.bank.height)
                 print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
                 self.coin_porter.add_last_liquidate_id(max_borrow_currency)
                 # print("liquidator_id:", self.coin_porter.last_liquidate_ids)
