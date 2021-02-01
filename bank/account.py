@@ -34,7 +34,7 @@ class AccountLockAmounts(Base):
 
     @staticmethod
     def get_collateral_value(amount, exchange_rate, price, collateral_factor):
-        return mantissa_mul(mantissa_mul(mantissa_mul(amount, exchange_rate), collateral_factor), price)
+        return mantissa_mul(mantissa_mul(mantissa_mul(amount, exchange_rate), price), collateral_factor)
 
     def get_total_collateral_value(self, token_infos):
         value = 0
@@ -43,7 +43,6 @@ class AccountLockAmounts(Base):
             collateral_factor = info.collateral_factor
             exchange_rate = info.update_exchange_rate()
             price = info.price
-            print("liqudiate", mantissa_mul(amount, exchange_rate), price, collateral_factor)
             value += self.get_collateral_value(amount, exchange_rate,  price, collateral_factor)
         return value
 
