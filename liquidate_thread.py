@@ -45,20 +45,19 @@ class LiquidateBorrowThread(Thread):
             finally:
                 lock.release()
 
-    def get_max_lock_currency(self, token_info_stores, addr):
-        lock_amounts = self.client.bank_get_lock_amounts(addr)
+    def get_max_lock_currency(self, addr):
         max_lock_currency, max_lock_value = None, 0
-        for currency, amount in lock_amounts.items():
-            balance = mantissa_mul(amount, token_info_stores.get_price(currency))
+        for currency in self.bank.accounts.get(addr).lock_amounts.amounts.keys():
+            balance = mantissa_mul(self.bank.get_lock_amount(addr, currency), self.bank.get_oracle_price(currency))
             if balance > max_lock_value:
                 max_lock_currency, max_lock_value = currency, balance
         return max_lock_currency, max_lock_value
 
-    def get_max_borrow_currency(self, token_info_stores, addr):
-        borrow_amounts = self.client.bank_get_borrow_amounts(addr)
+    def get_max_borrow_currency(self, addr):
+        borrow_amounts = self.bank.accounts.get(addr).borrow_amounts.amounts
         max_borrow_currency, max_borrow_value = None, 0
-        for currency, amount in borrow_amounts.items():
-            balance = mantissa_mul(amount[1], token_info_stores.get_price(currency))
+        for currency in borrow_amounts.keys():
+            balance = mantissa_mul(self.bank.get_borrow_amount(addr, currency), self.bank.get_oracle_price(currency))
             if balance > max_borrow_value:
                 max_borrow_currency, max_borrow_value = currency, balance
         return max_borrow_currency, max_borrow_value
@@ -84,23 +83,23 @@ class LiquidateBorrowThread(Thread):
         self.coin_porter.try_apply_coin(ac, currency_code, amount)
 
     def liquidate_borrow(self, addr):
+        bank_account_state = self.client.get_account_state(self.bank_account.address)
+
         '''vls币是否足够，用作 gas fee'''
-        if self.client.get_balance(self.bank_account.address_hex, DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
+        if bank_account_state.get_balance(DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
             self.try_apply_coin(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
 
-        lock_value = self.client.bank_get_total_collateral_value(addr)
-        borrow_value = self.client.bank_get_total_borrow_value(addr)
+        lock_value = self.bank.accounts.get(addr).total_lock
+        borrow_value = self.bank.accounts.get(addr).total_borrow
         owe_value = borrow_value - lock_value
         if owe_value > LIQUIDATE_LIMIT:
             ''' 获取清算的币和偿还的币，以获取清算的最大金额 '''
-            owner_state = self.client.get_account_state(self.client.get_bank_owner_address())
-            token_info_stores = owner_state.get_token_info_store_resource()
-            max_lock_currency, max_lock_value = self.get_max_lock_currency(token_info_stores, addr)
-            max_borrow_currency, max_borrow_value = self.get_max_borrow_currency(token_info_stores, addr)
+            max_lock_currency, max_lock_value = self.get_max_lock_currency(addr)
+            max_borrow_currency, max_borrow_value = self.get_max_borrow_currency(addr)
             liquidate_value = min(owe_value, max_lock_value, max_borrow_value)
 
             '''账户余额是否足够清算'''
-            borrow_currency_price = token_info_stores.get_price(max_borrow_currency)
+            borrow_currency_price = self.bank.get_oracle_price(max_borrow_currency)
             bank_value = mantissa_mul(self.client.bank_get_amount(self.bank_account.address_hex, max_borrow_currency), borrow_currency_price)
             if bank_value < LIQUIDATE_LIMIT:
                 amount = mantissa_div(LIQUIDATE_LIMIT, borrow_currency_price)
@@ -108,8 +107,8 @@ class LiquidateBorrowThread(Thread):
                     value = max(MIN_MINT_VALUE, liquidate_value)
                     amount = mantissa_div(value, borrow_currency_price)
                     self.try_apply_coin(self.bank_account, max_borrow_currency, amount)
-                    return
-            bank_value = mantissa_mul(self.client.bank_get_amount(self.bank_account.address_hex, max_borrow_currency), borrow_currency_price)
+                return
+
             liquidate_value = min(bank_value, liquidate_value)
             liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.9)
 

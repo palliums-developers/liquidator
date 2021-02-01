@@ -98,6 +98,10 @@ class TokenInfo(Base):
             return self.exchange_rate
         return self.update_exchange_rate()
 
+    def get_cur_exchange_rate(self):
+        ret = self.get_forecast(int(time.time() // 60))
+        return ret.get_exchange_rate()
+
     def add_lock(self, tx):
         amount = tx.get_amount()
         self.contract_value += amount
