@@ -375,7 +375,7 @@ class Bank(Base):
             token_info.rate_jump_multiplier = event.rate_jump_multiplier // (365*24*60)
             token_info.rate_kink = event.rate_kink
 
-    def check_borrow_index(self, time_minute):
+    def check_borrow_index(self, time_minute, liquidate_limit):
         ret = []
         cur_token_infos = dict()
         for currency_code, token_info in self.token_infos.items():
@@ -383,7 +383,7 @@ class Bank(Base):
 
         for account in self.get_accounts_has_borrow():
             health = account.update_health_state(cur_token_infos)
-            if health < 1:
+            if health < 1 and account.total_borrow - account.total_lock > liquidate_limit:
                 ret.append(account.address)
         return ret
 
