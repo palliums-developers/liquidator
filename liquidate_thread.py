@@ -104,7 +104,7 @@ class LiquidateBorrowThread(Thread):
                 return
 
             liquidate_value = min(bank_value, liquidate_value)
-            liquidate_value -= 1000
+            liquidate_value = liquidate_value - 1000
             liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price))
 
             '''是否已经注册偿还的币'''
