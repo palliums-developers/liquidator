@@ -202,4 +202,4 @@ class BackLiquidatorThread(Thread):
 if __name__ == "__main__":
     q = Queue()
     t = LiquidateBorrowThread(q)
-    t.liquidate_borrow("0034c08592887639565ff72c17acaf35")
+    t.liquidate_borrow("0003d51002e8aaaa8e9016fbb3d11165")

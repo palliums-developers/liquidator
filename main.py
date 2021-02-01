@@ -1,9 +1,15 @@
 from violas_client import Client
 from bank import Bank
 import copy
+from network import get_liquidator_account
 
 
 client = Client("violas_testnet")
-state = client.get_account_state("8ac60db3f51254ab93665f26f1349828")
-print(state.get_tokens_resource())
+addr = "0003d51002e8aaaa8e9016fbb3d11165"
+
+# account = get_liquidator_account()
+# client.bank_liquidate_borrow(account, addr, "vBTC", "vBTC", 276)
+print(client.bank_get_total_collateral_value(addr))
+print(client.bank_get_total_borrow_value(addr))
+
 
