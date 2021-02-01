@@ -25,9 +25,7 @@ if __name__ == "__main__":
         time.sleep(2)
         if scanner_thread.state == ScannerThread.UPDATED:
             break
-    update_state_thread = CheckerThread(unhealth_queue)
-    update_state_thread.setDaemon(True)
-    update_state_thread.start()
+
 
     liquidator_thread = LiquidateBorrowThread(unhealth_queue)
     liquidator_thread.setDaemon(True)
@@ -40,5 +38,9 @@ if __name__ == "__main__":
     monitor_thread = MonitorThread()
     monitor_thread.setDaemon(True)
     monitor_thread.start()
+
+    update_state_thread = CheckerThread(unhealth_queue)
+    update_state_thread.setDaemon(True)
+    update_state_thread.start()
 
     app.run(host="0.0.0.0", port=9000, debug=False)
