@@ -5,11 +5,11 @@ from network import get_liquidator_account
 
 
 client = Client("violas_testnet")
-addr = "fae3a86a20a72aa1a4bb93efa79a7bac"
+addr = "84ef3d263b3b19f7bc957a389c44d208"
 
-# account = get_liquidator_account()
-# client.bank_liquidate_borrow(account, addr, "vBTC", "vBTC", 276)
-print(client.bank_get_total_collateral_value(addr))
-print(client.bank_get_total_borrow_value(addr))
+account = get_liquidator_account()
+client.bank_liquidate_borrow(account, addr, "vBTC", "vBTC", 634)
+# print(client.bank_get_total_collateral_value(addr))
+# print(client.bank_get_total_borrow_value(addr))
 
 
