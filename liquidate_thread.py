@@ -104,7 +104,8 @@ class LiquidateBorrowThread(Thread):
                 return
 
             liquidate_value = min(bank_value, liquidate_value)
-            liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price))
+            print(liquidate_value)
+            liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.9)
 
             '''是否已经注册偿还的币'''
             cs = self.client.get_account_registered_currencies(self.bank_account.address)
@@ -120,6 +121,8 @@ class LiquidateBorrowThread(Thread):
                 self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount)
             except Exception as e:
                 print(owe_value, liquidate_value, self.client.bank_get_total_collateral_value(addr) - self.client.bank_get_total_borrow_value(addr))
+                print(lock_value, borrow_value, self.client.bank_get_total_collateral_value(addr) - self.client.bank_get_total_borrow_value(addr))
+
                 # localtime = time.asctime(time.localtime(time.time()))
                 # traceback.print_exc()
                 # print(addr, owe_value, self.bank.height)
