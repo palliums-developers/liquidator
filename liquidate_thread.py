@@ -122,9 +122,9 @@ class LiquidateBorrowThread(Thread):
                     self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount, is_blocking=False)
                     break
                 except Exception as e:
-                    localtime = time.asctime(time.localtime(time.time()))
-                    traceback.print_exc()
-                    print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount)
+                    # localtime = time.asctime(time.localtime(time.time()))
+                    # traceback.print_exc()
+                    # print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount)
                     time.sleep(0.1)
 
             self.coin_porter.add_last_liquidate_id(max_borrow_currency)
