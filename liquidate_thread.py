@@ -83,8 +83,6 @@ class LiquidateBorrowThread(Thread):
         self.coin_porter.try_apply_coin(ac, currency_code, amount)
 
     def liquidate_borrow(self, addr):
-        bank_account_state = self.client.get_account_state(self.bank_account.address)
-
         lock_value = self.bank.accounts.get(addr).total_lock
         borrow_value = self.bank.accounts.get(addr).total_borrow
         owe_value = borrow_value - lock_value
@@ -116,6 +114,7 @@ class LiquidateBorrowThread(Thread):
 
             try:
                 '''vls币是否足够，用作 gas fee'''
+                bank_account_state = self.client.get_account_state(self.bank_account.address)
                 if bank_account_state.get_balance(DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
                     self.try_apply_coin(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
 
