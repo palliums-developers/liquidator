@@ -122,7 +122,7 @@ class LiquidateBorrowThread(Thread):
             except Exception as e:
                 localtime = time.asctime(time.localtime(time.time()))
                 traceback.print_exc()
-                print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value)
+                print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
                 self.coin_porter.add_last_liquidate_id(max_borrow_currency)
                 # print("liquidator_id:", self.coin_porter.last_liquidate_ids)
                 # print("apply_id:", self.coin_porter.last_apply_ids)
