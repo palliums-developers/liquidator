@@ -43,8 +43,7 @@ class AccountLockAmounts(Base):
             collateral_factor = info.collateral_factor
             exchange_rate = info.update_exchange_rate()
             price = info.price
-            print("liquidate", currency, amount, exchange_rate, price, collateral_factor)
-            value += self.get_collateral_value(amount, exchange_rate, price, collateral_factor)
+            value += self.get_collateral_value(mantissa_mul(amount, exchange_rate), price, collateral_factor)
         return value
 
 @dataclass(init=False)
