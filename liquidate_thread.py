@@ -15,11 +15,11 @@ from network import (
 # 清算的最小值
 LIQUIDATE_LIMIT = 1_000_000_000
 # 每次mint的值
-MIN_MINT_VALUE = 1_000_000_000
+MIN_MINT_VALUE = 10_000_000_000
 #VLS最小值
 MIN_VLS_AMOUNT = 1_000
 #拥有的最大值
-MAX_OWN_VALUE = 10_000_000_000
+MAX_OWN_VALUE = 100_000_000_000
 lock = Lock()
 
 class LiquidateBorrowThread(Thread):
