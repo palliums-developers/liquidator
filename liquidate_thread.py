@@ -118,7 +118,7 @@ class LiquidateBorrowThread(Thread):
                 self.client.add_currency_to_account(self.bank_account, max_lock_currency)
 
             try:
-                self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount)
+                self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount, is_blocking=False)
             except Exception as e:
                 localtime = time.asctime(time.localtime(time.time()))
                 traceback.print_exc()

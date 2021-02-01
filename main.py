@@ -5,7 +5,7 @@ from network import get_liquidator_account
 
 
 client = Client("violas_testnet")
-addr = "0003d51002e8aaaa8e9016fbb3d11165"
+addr = "fae3a86a20a72aa1a4bb93efa79a7bac"
 
 # account = get_liquidator_account()
 # client.bank_liquidate_borrow(account, addr, "vBTC", "vBTC", 276)
