@@ -36,14 +36,14 @@ class LiquidateBorrowThread(Thread):
         while True:
             addr = self.queue.get()
             try:
-                lock.acquire()
+                # lock.acquire()
                 self.liquidate_borrow(addr)
             except Exception as e:
                 print("liquidator_thread")
                 traceback.print_exc()
                 time.sleep(1)
-            finally:
-                lock.release()
+            # finally:
+                # lock.release()
 
     def get_max_lock_currency(self, addr):
         max_lock_currency, max_lock_value = None, 0
