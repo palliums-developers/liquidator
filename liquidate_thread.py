@@ -13,7 +13,7 @@ from network import (
 )
 
 # 清算的最小值
-LIQUIDATE_LIMIT = 100_000_000
+LIQUIDATE_LIMIT = 1_000_000_000
 # 每次mint的值
 MIN_MINT_VALUE = 1_000_000_000
 #VLS最小值
