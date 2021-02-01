@@ -41,7 +41,7 @@ class AccountLockAmounts(Base):
         for currency, amount in self.amounts.items():
             info = token_infos.get(currency)
             collateral_factor = info.collateral_factor
-            exchange_rate = info.get_exchange_rate()
+            exchange_rate = info.update_exchange_rate()
             price = info.price
             value += self.get_collateral_value(amount, exchange_rate, price, collateral_factor)
         return value
@@ -132,7 +132,7 @@ class AccountView(Base):
         self.borrow_amounts.reduce_amount(currency_code, amount, borrow_index)
         self.update_health_state(token_infos)
         return self.health
-    
+
     def add_liquidate_borrow_to_liquidator(self, collateral_currency_code, collateral_amount, token_infos):
         self.lock_amounts.add_original_amount(collateral_currency_code, collateral_amount)
         self.update_health_state(token_infos)
