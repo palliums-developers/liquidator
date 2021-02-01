@@ -37,7 +37,9 @@ class LiquidateBorrowThread(Thread):
             addr = self.queue.get()
             try:
                 # lock.acquire()
+                s_time = time.time()
                 self.liquidate_borrow(addr)
+                print(time.time() - s_time)
             except Exception as e:
                 print("liquidator_thread")
                 traceback.print_exc()
@@ -104,7 +106,6 @@ class LiquidateBorrowThread(Thread):
                 return
 
             liquidate_value = min(bank_value, liquidate_value)
-            print(liquidate_value)
             liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.9)
 
             '''是否已经注册偿还的币'''
@@ -117,16 +118,13 @@ class LiquidateBorrowThread(Thread):
                 bank_account_state = self.client.get_account_state(self.bank_account.address)
                 if bank_account_state.get_balance(DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
                     self.try_apply_coin(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
-
                 self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount)
+                print("liquidate borrow")
             except Exception as e:
-                print(owe_value, liquidate_value, self.client.bank_get_total_collateral_value(addr) - self.client.bank_get_total_borrow_value(addr))
-                print(lock_value, borrow_value, self.client.bank_get_total_collateral_value(addr) - self.client.bank_get_total_borrow_value(addr))
-
-                # localtime = time.asctime(time.localtime(time.time()))
-                # traceback.print_exc()
-                # print(addr, owe_value, self.bank.height)
-                # print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
+                localtime = time.asctime(time.localtime(time.time()))
+                traceback.print_exc()
+                print(addr, owe_value, self.bank.height)
+                print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
             finally:
                 self.coin_porter.add_last_liquidate_id(max_borrow_currency)
                 # print("liquidator_id:", self.coin_porter.last_liquidate_ids)
