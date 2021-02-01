@@ -119,7 +119,7 @@ class LiquidateBorrowThread(Thread):
 
                 self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount)
             except Exception as e:
-                print(liquidate_value, self.client.bank_get_total_collateral_value() - self.client.bank_get_total_borrow_value())
+                print(liquidate_value, self.client.bank_get_total_collateral_value(addr) - self.client.bank_get_total_borrow_value(addr))
                 # localtime = time.asctime(time.localtime(time.time()))
                 # traceback.print_exc()
                 # print(addr, owe_value, self.bank.height)
