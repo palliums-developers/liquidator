@@ -37,9 +37,7 @@ class LiquidateBorrowThread(Thread):
             addr = self.queue.get()
             try:
                 lock.acquire()
-                s_time = time.time()
                 self.liquidate_borrow(addr)
-                print(time.time() - s_time)
             except Exception as e:
                 print("liquidator_thread")
                 traceback.print_exc()
