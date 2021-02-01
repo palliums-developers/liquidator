@@ -75,7 +75,8 @@ class Bank(Base):
         return mantissa_mul(account.lock_amounts.amounts.get(currency_code), exchange_rate)
 
     def get_borrow_amount(self, addr, currency_code):
-        borrow_amount = self.accounts.get(addr).borrow_amounts.get(currency_code)
+        account = self.accounts.get(addr)
+        borrow_amount = account.borrow_amounts.amounts.get(currency_code)
         return mantissa_div(mantissa_mul(borrow_amount[0], borrow_amount[1]), self.token_infos.get(currency_code).borrow_index)
 
     def get_token_info(self, currency_code) -> TokenInfo:
