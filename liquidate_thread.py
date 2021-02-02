@@ -13,7 +13,7 @@ from network import (
 )
 
 # 清算的最小值
-LIQUIDATE_LIMIT = 1_000_000_000
+LIQUIDATE_LIMIT = 10_000_000
 # 每次mint的值
 MIN_MINT_VALUE = 10_000_000_000
 #VLS最小值
@@ -122,6 +122,7 @@ class LiquidateBorrowThread(Thread):
                 localtime = time.asctime(time.localtime(time.time()))
                 traceback.print_exc()
                 print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
+                time.sleep(1)
             finally:
                 self.coin_porter.add_last_liquidate_id(max_borrow_currency)
                 # print("liquidator_id:", self.coin_porter.last_liquidate_ids)
@@ -200,4 +201,4 @@ class BackLiquidatorThread(Thread):
 if __name__ == "__main__":
     q = Queue()
     t = LiquidateBorrowThread(q)
-    t.liquidate_borrow("0003d51002e8aaaa8e9016fbb3d11165")
+    t.liquidate_borrow("957f949ca46db1640dd16b50797e82b8")
