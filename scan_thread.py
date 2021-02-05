@@ -33,38 +33,38 @@ class ScannerThread(Thread):
         db_height = self.bank.height
 
         while True:
-            # try:
+            try:
                 txs = self.client.get_transactions(self.bank.height, limit)
                 if len(txs) == 0:
                     time.sleep(1)
                     continue
                 for index, tx in enumerate(txs):
-                    # bank_lock.acquire()
+                    bank_lock.acquire()
                     self.bank.height += 1
                     addrs = self.bank.add_tx(tx)
-                    # bank_lock.release()
-                    if addrs is not None:
-                        version = tx.get_version()
-                        print(version)
-                        self.check_token(version)
-                    # if self.state == self.UPDATED:
-                    #     if addrs is not None:
-                    #         for addr in addrs:
-                    #             self.queue.put(addr)
+                    bank_lock.release()
+                    # if addrs is not None:
+                    #     version = tx.get_version()
+                    #     print(version)
+                    #     self.check_token(version)
+                    if self.state == self.UPDATED:
+                        if addrs is not None:
+                            for addr in addrs:
+                                self.queue.put(addr)
 
-                    # if self.state == self.UPDATING:
-                    #     self.coin_porter.add_tx(tx)
+                    if self.state == self.UPDATING:
+                        self.coin_porter.add_tx(tx)
 
-                # if self.state == self.UPDATING and len(txs) < limit:
-                #     self.state = self.UPDATED
-                # if self.bank.height - db_height >= 100_000:
-                #     self.bank.update_to_db()
-                #     self.coin_porter.update_to_db()
-                #     db_height = self.bank.height
-            # except Exception as e:
-            #     print("scan_thread")
-            #     traceback.print_exc()
-            #     time.sleep(2)
+                if self.state == self.UPDATING and len(txs) < limit:
+                    self.state = self.UPDATED
+                if self.bank.height - db_height >= 100_000:
+                    self.bank.update_to_db()
+                    self.coin_porter.update_to_db()
+                    db_height = self.bank.height
+            except Exception as e:
+                print("scan_thread")
+                traceback.print_exc()
+                time.sleep(2)
 
     def check_account(self, addr, version):
         try:

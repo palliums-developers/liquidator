@@ -6,9 +6,9 @@ from bank import Bank, AccountView, TokenInfo
 client = Client("violas_testnet")
 currency_code = "vBTC"
 
-def update_tokens_info():
+def update_tokens_info(version):
     bank = Bank()
-    state = client.get_account_state(client.BANK_OWNER_ADDRESS)
+    state = client.get_account_state(client.BANK_OWNER_ADDRESS, version)
     resource = state.get_token_info_store_resource(accrue_interest=False)
     for index, token in enumerate(resource.tokens):
         if index % 2 == 0:
@@ -16,11 +16,12 @@ def update_tokens_info():
             currency_code = token.get("currency_code")
             token["total_supply"] = resource.tokens[index+1].total_supply
             token["contract_value"] = state.get_bank_amount(index)
-            rate = client.oracle_get_exchange_rate(currency_code)
+            state = client.get_account_state(client.ORACLE_OWNER_ADDRESS, version)
+            if state is not None:
+                rate = state.oracle_get_exchange_rate(currency_code)
             if rate:
                 token["oracle_price"] = rate.value
             bank.token_infos[currency_code] = TokenInfo.empty(**token)
-    print(bank.token_infos)
 
 update_tokens_info()
 
