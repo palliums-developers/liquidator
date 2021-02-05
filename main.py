@@ -4,8 +4,6 @@ from bank.util import mantissa_mul
 import copy
 from network import get_liquidator_account
 
-
-
 client = Client("violas_testnet")
 addr = "0ccc44c8650a0cad2072b5993e42f5bc"
 # state = client.get_account_state(addr)

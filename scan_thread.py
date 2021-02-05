@@ -39,28 +39,28 @@ class ScannerThread(Thread):
                     time.sleep(1)
                     continue
                 for index, tx in enumerate(txs):
-                    bank_lock.acquire()
+                    # bank_lock.acquire()
                     self.bank.height += 1
                     addrs = self.bank.add_tx(tx)
-                    bank_lock.release()
-                    # if addrs is not None:
-                    #     version = tx.get_version()
-                    #     print(version)
-                    #     self.check_account("29e9db87cb692c3e63ef883f62405947", version)
+                    # bank_lock.release()
+                    if addrs is not None:
+                        version = tx.get_version()
+                        print(version)
+                        self.check_token(version)
                     # if self.state == self.UPDATED:
                     #     if addrs is not None:
                     #         for addr in addrs:
                     #             self.queue.put(addr)
 
-                    if self.state == self.UPDATING:
-                        self.coin_porter.add_tx(tx)
+                    # if self.state == self.UPDATING:
+                    #     self.coin_porter.add_tx(tx)
 
-                if self.state == self.UPDATING and len(txs) < limit:
-                    self.state = self.UPDATED
-                if self.bank.height - db_height >= 100_000:
-                    self.bank.update_to_db()
-                    self.coin_porter.update_to_db()
-                    db_height = self.bank.height
+                # if self.state == self.UPDATING and len(txs) < limit:
+                #     self.state = self.UPDATED
+                # if self.bank.height - db_height >= 100_000:
+                #     self.bank.update_to_db()
+                #     self.coin_porter.update_to_db()
+                #     db_height = self.bank.height
             except Exception as e:
                 print("scan_thread")
                 traceback.print_exc()
