@@ -367,7 +367,6 @@ class Bank(Base):
         currency_code = tx.get_currency_code()
         price = self.get_price(currency_code)
         oracle_price = self.get_oracle_price(currency_code)
-        print(price, oracle_price)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
             price = oracle_price
