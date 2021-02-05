@@ -63,6 +63,15 @@ class Bank(Base):
                 BankCodeType.UPDATE_COLLATERAL_FACTOR: self.update_collateral_factor,
                 BankCodeType.UPDATE_RATE_MODEL: self.update_rate_model,
                 OracleCodType.UPDATE_EXCHANGE_RATE: self.update_oracle_price,
+
+                BankCodeType.REDEEM_MASTER: self.add_redeem,
+                BankCodeType.REDEEM2_MASTER: self.add_redeem,
+                BankCodeType.REDEEM_INDEX_MASTER: self.add_redeem,
+
+                BankCodeType.REPAY_BORROW2_MASTER: self.add_repay_borrow,
+                BankCodeType.REPAY_BORROW_MASTER: self.add_repay_borrow,
+                BankCodeType.REPAY_BORROW_INDEX_MASTER: self.add_repay_borrow,
+
             }
 
             self.height = 0
@@ -305,10 +314,10 @@ class Bank(Base):
         account = self.get_account(tx.get_sender())
         borrower = self.get_account(tx.get_borrower())
 
-        if account.add_liquidate_borrow_to_liquidator(collateral_currency, value, self.token_infos) < 1:
-            ret.append(account.address)
-        if borrower.add_liquidate_borrow_to_borrower(collateral_currency, value, currency_code, tx.get_amount(), self.token_infos) < 1:
-            ret.append(account.address)
+        # if account.add_liquidate_borrow_to_liquidator(collateral_currency, value, self.token_infos) < 1:
+        #     ret.append(account.address)
+        # if borrower.add_liquidate_borrow_to_borrower(collateral_currency, value, currency_code, tx.get_amount(), self.token_infos) < 1:
+        #     ret.append(account.address)
 
         if oracle_price is not None and price > oracle_price:
             accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
@@ -358,6 +367,7 @@ class Bank(Base):
         currency_code = tx.get_currency_code()
         price = self.get_price(currency_code)
         oracle_price = self.get_oracle_price(currency_code)
+        print(price, oracle_price)
         if price != oracle_price:
             self.set_price(currency_code, oracle_price)
             price = oracle_price
