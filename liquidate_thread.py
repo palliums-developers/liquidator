@@ -33,6 +33,7 @@ class LiquidateBorrowThread(Thread):
         self.coin_porter = CoinPorter()
 
     def run(self) -> None:
+        start = 0
         while True:
             addr = self.queue.get()
             try:
@@ -41,9 +42,13 @@ class LiquidateBorrowThread(Thread):
             except Exception as e:
                 print("liquidator_thread")
                 traceback.print_exc()
-                time.sleep(1)
+                time.sleep(2)
             finally:
                 lock.release()
+                start += 1
+                if start % 99 == 0:
+                    time.sleep(2)
+
 
     def get_max_lock_currency(self, addr):
         max_lock_currency, max_lock_value = None, 0
@@ -119,11 +124,11 @@ class LiquidateBorrowThread(Thread):
                     self.try_apply_coin(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
                 self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount, is_blocking=False)
             except LibraError as e:
-                if e.args[0] == -32009:
-                    time.sleep(2)
-                    self.queue.put(addr)
-                    traceback.print_exc()
-                else:
+                # if e.args[0] == -32009:
+                #     time.sleep(2)
+                #     self.queue.put(addr)
+                #     traceback.print_exc()
+                # else:
                     print(e.args[0])
                     localtime = time.asctime(time.localtime(time.time()))
                     traceback.print_exc()
