@@ -13,7 +13,7 @@ from network import (
 )
 from violas_client.error.error import LibraError
 # 清算的最小值
-LIQUIDATE_LIMIT = 100_000_000
+LIQUIDATE_LIMIT = 200_000_000
 # 每次mint的值
 MIN_MINT_VALUE = 10_000_000_000
 #VLS最小值
