@@ -47,7 +47,7 @@ class LiquidateBorrowThread(Thread):
                 lock.release()
                 start += 1
                 if start % 99 == 0:
-                    time.sleep(2)
+                    time.sleep(1)
 
 
     def get_max_lock_currency(self, addr):
@@ -110,7 +110,7 @@ class LiquidateBorrowThread(Thread):
 
             liquidate_value = min(bank_value, liquidate_value)
             liquidate_value = liquidate_value
-            liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.7)
+            liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.9)
 
             '''是否已经注册偿还的币'''
             cs = self.client.get_account_registered_currencies(self.bank_account.address)
