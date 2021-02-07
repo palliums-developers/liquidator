@@ -62,7 +62,7 @@ class LiquidateBorrowThread(Thread):
         amounts = self.client.bank_get_lock_amounts(addr)
         max_lock_currency, max_lock_value = None, 0
         for currency, amount in amounts.items():
-            balance = amount * self.client.oracle_get_exchange_rate(currency).value
+            balance = amount * (self.client.oracle_get_exchange_rate(currency).value)
             if balance > max_lock_value:
                 max_lock_currency = currency
                 max_lock_value = balance
@@ -82,7 +82,7 @@ class LiquidateBorrowThread(Thread):
         amounts = self.client.bank_get_borrow_amounts(addr)
         max_borrow_currency, max_borrow_value = None, 0
         for currency, amount in amounts.items():
-            balance = amount * self.client.oracle_get_exchange_rate(currency).value
+            balance = amount * (self.client.oracle_get_exchange_rate(currency).value)
             if balance > max_borrow_value:
                 max_borrow_currency = currency
                 max_borrow_value = balance
