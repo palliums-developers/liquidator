@@ -82,7 +82,7 @@ class LiquidateBorrowThread(Thread):
         amounts = self.client.bank_get_borrow_amounts(addr)
         max_borrow_currency, max_borrow_value = None, 0
         for currency, amount in amounts.items():
-            print(amount, self.client.oracle_get_exchange_rate(currency).value)
+            amount = amount[1]
             balance = mantissa_mul(amount, self.client.oracle_get_exchange_rate(currency).value)
             if balance > max_borrow_value:
                 max_borrow_currency = currency
