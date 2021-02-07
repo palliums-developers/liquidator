@@ -110,7 +110,7 @@ class LiquidateBorrowThread(Thread):
 
             liquidate_value = min(bank_value, liquidate_value)
             liquidate_value = liquidate_value
-            liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.9)
+            liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.8)
 
             '''是否已经注册偿还的币'''
             cs = self.client.get_account_registered_currencies(self.bank_account.address)
@@ -123,16 +123,16 @@ class LiquidateBorrowThread(Thread):
                 if bank_account_state.get_balance(DEFAULT_COIN_NAME) < MIN_VLS_AMOUNT:
                     self.try_apply_coin(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
                 self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount, is_blocking=False)
-            except LibraError as e:
+            except Exception as e:
                 # if e.args[0] == -32009:
                 #     time.sleep(2)
                 #     self.queue.put(addr)
                 #     traceback.print_exc()
                 # else:
-                    print(e.args[0])
-                    localtime = time.asctime(time.localtime(time.time()))
-                    traceback.print_exc()
-                    print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
+                print(e.args[0])
+                localtime = time.asctime(time.localtime(time.time()))
+                traceback.print_exc()
+                print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
             finally:
                 self.coin_porter.add_last_liquidate_id(max_borrow_currency)
                 # print("liquidator_id:", self.coin_porter.last_liquidate_ids)
