@@ -111,7 +111,7 @@ class LiquidateBorrowThread(Thread):
 
             liquidate_value = min(bank_value, liquidate_value)
             liquidate_value = liquidate_value
-            liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.8)
+            liquidate_amount = int(mantissa_div(liquidate_value, borrow_currency_price)*0.9)
 
             '''是否已经注册偿还的币'''
             cs = self.client.get_account_registered_currencies(self.bank_account.address)
