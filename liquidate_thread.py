@@ -13,7 +13,7 @@ from network import (
 )
 from violas_client.error.error import LibraError
 # 清算的最小值
-LIQUIDATE_LIMIT = 200_000_000
+LIQUIDATE_LIMIT = 1_000_000_000
 # 每次mint的值
 MIN_MINT_VALUE = 10_000_000_000
 #VLS最小值
@@ -50,21 +50,42 @@ class LiquidateBorrowThread(Thread):
                     time.sleep(1)
 
 
+    # def get_max_lock_currency(self, addr):
+    #     max_lock_currency, max_lock_value = None, 0
+    #     for currency in self.bank.accounts.get(addr).lock_amounts.amounts.keys():
+    #         balance = mantissa_mul(self.bank.get_lock_amount(addr, currency), self.bank.get_oracle_price(currency))
+    #         if balance > max_lock_value:
+    #             max_lock_currency, max_lock_value = currency, balance
+    #     return max_lock_currency, max_lock_value
+
     def get_max_lock_currency(self, addr):
+        amounts = self.client.bank_get_lock_amounts(addr)
         max_lock_currency, max_lock_value = None, 0
-        for currency in self.bank.accounts.get(addr).lock_amounts.amounts.keys():
-            balance = mantissa_mul(self.bank.get_lock_amount(addr, currency), self.bank.get_oracle_price(currency))
+        for currency, amount in amounts.items():
+            balance = amount * self.client.oracle_get_exchange_rate(currency).value
             if balance > max_lock_value:
-                max_lock_currency, max_lock_value = currency, balance
+                max_lock_currency = currency
+                max_lock_value = balance
         return max_lock_currency, max_lock_value
 
+
+    # def get_max_borrow_currency(self, addr):
+    #     borrow_amounts = self.bank.accounts.get(addr).borrow_amounts.amounts
+    #     max_borrow_currency, max_borrow_value = None, 0
+    #     for currency in borrow_amounts.keys():
+    #         balance = mantissa_mul(self.bank.get_borrow_amount(addr, currency), self.bank.get_oracle_price(currency))
+    #         if balance > max_borrow_value:
+    #             max_borrow_currency, max_borrow_value = currency, balance
+    #     return max_borrow_currency, max_borrow_value
+
     def get_max_borrow_currency(self, addr):
-        borrow_amounts = self.bank.accounts.get(addr).borrow_amounts.amounts
+        amounts = self.client.bank_get_borrow_amounts(addr)
         max_borrow_currency, max_borrow_value = None, 0
-        for currency in borrow_amounts.keys():
-            balance = mantissa_mul(self.bank.get_borrow_amount(addr, currency), self.bank.get_oracle_price(currency))
+        for currency, amount in amounts.items():
+            balance = amount * self.client.oracle_get_exchange_rate(currency).value
             if balance > max_borrow_value:
-                max_borrow_currency, max_borrow_value = currency, balance
+                max_borrow_currency = currency
+                max_borrow_value = balance
         return max_borrow_currency, max_borrow_value
 
     def try_enter_bank(self, ac, currency_code, min_amount):
@@ -98,7 +119,8 @@ class LiquidateBorrowThread(Thread):
             liquidate_value = min(owe_value, max_lock_value, max_borrow_value)
 
             '''账户余额是否足够清算'''
-            borrow_currency_price = self.bank.get_oracle_price(max_borrow_currency)
+            # borrow_currency_price = self.bank.get_oracle_price(max_borrow_currency)
+            borrow_currency_price = self.client.oracle_get_exchange_rate(max_borrow_currency).value
             bank_value = mantissa_mul(self.client.bank_get_amount(self.bank_account.address_hex, max_borrow_currency), borrow_currency_price)
             if bank_value < LIQUIDATE_LIMIT:
                 amount = mantissa_div(LIQUIDATE_LIMIT, borrow_currency_price)
