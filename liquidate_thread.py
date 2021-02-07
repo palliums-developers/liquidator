@@ -46,8 +46,7 @@ class LiquidateBorrowThread(Thread):
             finally:
                 lock.release()
                 start += 1
-                if start % 99 == 0:
-                    print("sleep")
+                if start % 50 == 0:
                     time.sleep(1)
 
 
