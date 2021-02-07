@@ -120,7 +120,7 @@ class LiquidateBorrowThread(Thread):
                 self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount, is_blocking=False)
             except LibraError as e:
                 if e.args[0] == -32009:
-                    time.sleep(1)
+                    time.sleep(2)
                     self.queue.put(addr)
                     traceback.print_exc()
                 else:
