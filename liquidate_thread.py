@@ -119,10 +119,11 @@ class LiquidateBorrowThread(Thread):
                     self.try_apply_coin(self.bank_account, DEFAULT_COIN_NAME, MIN_MINT_VALUE)
                 self.client.bank_liquidate_borrow(self.bank_account, addr, max_borrow_currency, max_lock_currency, liquidate_amount, is_blocking=False)
             except LibraError as e:
-                if e.args[0] == -32009:
-                    time.sleep(1)
-                    self.queue.put(addr)
-                else:
+                # if e.args[0] == -32009:
+                #     time.sleep(1)
+                #     self.queue.put(addr)
+                # else:
+                    print(e.args[0])
                     localtime = time.asctime(time.localtime(time.time()))
                     traceback.print_exc()
                     print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
