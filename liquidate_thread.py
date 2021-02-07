@@ -47,6 +47,7 @@ class LiquidateBorrowThread(Thread):
                 lock.release()
                 start += 1
                 if start % 99 == 0:
+                    print("sleep")
                     time.sleep(1)
 
 
@@ -130,7 +131,6 @@ class LiquidateBorrowThread(Thread):
                 #     traceback.print_exc()
                 # else:
                 print(e.args[0])
-                print(self.client.accounts_seq.get(self.bank_account.address_hex))
                 localtime = time.asctime(time.localtime(time.time()))
                 traceback.print_exc()
                 print(localtime, addr, max_borrow_currency, max_lock_currency, liquidate_amount, liquidate_value, mantissa_mul(liquidate_amount, self.bank.get_oracle_price(max_borrow_currency)))
