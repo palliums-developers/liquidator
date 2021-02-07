@@ -110,8 +110,9 @@ class LiquidateBorrowThread(Thread):
         self.coin_porter.try_apply_coin(ac, currency_code, amount)
 
     def liquidate_borrow(self, addr):
-        collateral_value = self.bank.get_total_collateral_value(addr)
-        borrow_value = self.bank.get_total_borrow_value(addr)
+        token_infos = self.client.get_account_state(self.client.BANK_OWNER_ADDRESS).get_token_info_store_resource()
+        collateral_value = self.client.get_total_collateral_value(addr, token_infos)
+        borrow_value = self.client.get_total_borrow_value(addr, token_infos)
         owe_value = borrow_value - collateral_value
         if owe_value > LIQUIDATE_LIMIT:
             ''' 获取清算的币和偿还的币，以获取清算的最大金额 '''
