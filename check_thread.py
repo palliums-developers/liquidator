@@ -21,7 +21,7 @@ class CheckerThread(Thread):
                     for addr in addrs:
                         self.queue.put(addr)
                 self.latest_update_time = cur_time
-                time.sleep(25)
+                time.sleep(70)
             except Exception as e:
                 import traceback
                 time.sleep(2)
