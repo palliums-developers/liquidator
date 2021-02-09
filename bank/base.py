@@ -16,7 +16,7 @@ class Base:
     PREFIX = ""
 
     def to_json(self):
-        return json.loads(json.dumps(self, default=set_default))
+        return json.loads(json.dumps(self, default=set_default, indent=4))
 
     @classmethod
     def from_json(cls, json):
