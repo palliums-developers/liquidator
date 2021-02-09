@@ -317,7 +317,7 @@ class Bank(Base):
         if account.add_liquidate_borrow_to_liquidator(collateral_currency, value, self.token_infos) < 1:
             ret.append(account.address)
         if borrower.add_liquidate_borrow_to_borrower(collateral_currency, value, currency_code, tx.get_amount(), self.token_infos) < 1:
-            ret.append(account.address)
+            ret.append(borrower.address)
 
         if oracle_price is not None and price > oracle_price:
             accounts = self.get_accounts_has_borrow_and_lock_specificed_currency(currency_code)
