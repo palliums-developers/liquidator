@@ -15,8 +15,7 @@ def index():
     values = Bank().to_json()
     accounts = values.get("accounts")
     new_accounts = {}
-    for addr, account in values.items():
-        print(addr, account)
+    for addr, account in accounts.items():
         if account.get("owe_amount") >  LIQUIDATE_LIMIT / 1_000_000:
             new_accounts[addr] = account
     values["accounts"] = new_accounts
