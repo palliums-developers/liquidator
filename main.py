@@ -4,7 +4,8 @@ from violas_client import Wallet, Client
 from bank import Bank, AccountView, TokenInfo
 
 client = Client("violas_testnet")
-print(client.bank_get_lock_amounts("b14bc3286e4b9b41c86022f2e614d721"))
+addr = "004538674b6917a8a168646180def8a8"
+print(client.bank_get_total_collateral_value(addr) - client.bank_get_total_borrow_value(addr))
 # currency_code = "vBTC"
 #
 # def update_tokens_info(version):

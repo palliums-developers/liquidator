@@ -50,6 +50,7 @@ class ScannerThread(Thread):
                     if self.state == self.UPDATED:
                         if addrs is not None:
                             for addr in addrs:
+                                print(addr)
                                 self.queue.put(addr)
 
                     if self.state == self.UPDATING:
