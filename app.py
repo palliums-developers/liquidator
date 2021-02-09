@@ -20,7 +20,14 @@ def index():
         if owe_amount is not None and owe_amount >  LIQUIDATE_LIMIT / 1_000_000:
             new_accounts[addr] = account
     values["to_be_liquidated_accounts"] = new_accounts
+    values.pop("accounts")
     return values
+
+@app.route('/<addr>')
+def get_addr(addr):
+    values = Bank().to_json()
+    accounts = values.get("accounts")
+    return accounts.get(addr)
 
 
 if __name__ == "__main__":
