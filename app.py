@@ -16,8 +16,8 @@ def index():
     accounts = values.get("accounts")
     new_accounts = {}
     for addr, account in accounts.items():
-        print(account)
-        if account.get("owe_amount") >  LIQUIDATE_LIMIT / 1_000_000:
+        owe_amount = account.get("owe_amount")
+        if owe_amount is not None and owe_amount >  LIQUIDATE_LIMIT / 1_000_000:
             new_accounts[addr] = account
     values["accounts"] = new_accounts
     return values
