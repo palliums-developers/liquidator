@@ -4,7 +4,7 @@ from flask import Flask
 from scan_thread import ScannerThread
 from check_thread import CheckerThread
 from monitor_thread import MonitorThread
-from liquidate_thread import LiquidateBorrowThread, BackLiquidatorThread
+from liquidate_thread import LiquidateBorrowThread, BackLiquidatorThread, LIQUIDATE_LIMIT
 from bank import Bank
 
 
@@ -12,8 +12,14 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return Bank().to_json()
-
+    values = Bank().to_json()
+    accounts = values.get("accounts")
+    new_accounts = {}
+    for addr, account in values.items():
+        if account.get("owe_amount") >  LIQUIDATE_LIMIT / 1_000_000:
+            new_accounts[addr] = account
+    values["accounts"] = new_accounts
+    return values
 
 
 if __name__ == "__main__":
