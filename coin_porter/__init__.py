@@ -69,7 +69,7 @@ class CoinPorter(Base):
         data = {
             "flag":"violas",
             "type":"funds",
-            "opttype":"map",
+            "opttype":"liq",
             "chain": "violas",
             "tran_id": tran_id,
             "token_id": currency_code,

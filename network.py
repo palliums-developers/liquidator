@@ -33,3 +33,6 @@ def get_liquidator_account():
         secret_client.set_secret(LIQUIDATOR_SECRET_NAME, secret)
     wallet = Wallet.new_from_mnemonic(secret)
     return wallet.new_account()
+
+
+print(get_liquidator_account().address_hex)

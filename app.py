@@ -17,7 +17,7 @@ def index():
     new_accounts = {}
     for addr, account in accounts.items():
         owe_amount = account.get("owe_amount")
-        if owe_amount is not None and owe_amount >  LIQUIDATE_LIMIT / 1_000_000:
+        if owe_amount is not None and owe_amount > LIQUIDATE_LIMIT / 1_000_000:
             new_accounts[addr] = account
     values["to_be_liquidated_accounts"] = new_accounts
     values.pop("accounts")
