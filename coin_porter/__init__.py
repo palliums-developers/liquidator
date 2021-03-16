@@ -75,7 +75,8 @@ class CoinPorter(Base):
             "token_id": currency_code,
             "amount": amount,
             "to_address": f"0x{ac.address_hex}",
-            "state":"start"
+            "state":"start",
+            "chain_id": self.violas_client.chain_id
         }
         self.violas_client.transfer_coin(ac, self.dd_addr, 1, data=json.dumps(data), currency_code=DEFAULT_COIN_NAME)
 

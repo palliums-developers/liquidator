@@ -1,5 +1,4 @@
 import dataclasses
-import json
 import time
 from typing import Dict
 from .base import Base
@@ -63,14 +62,6 @@ class Bank(Base):
                 BankCodeType.UPDATE_COLLATERAL_FACTOR: self.update_collateral_factor,
                 BankCodeType.UPDATE_RATE_MODEL: self.update_rate_model,
                 OracleCodType.UPDATE_EXCHANGE_RATE: self.update_oracle_price,
-
-                BankCodeType.REDEEM_MASTER: self.add_redeem,
-                BankCodeType.REDEEM2_MASTER: self.add_redeem,
-                BankCodeType.REDEEM_INDEX_MASTER: self.add_redeem,
-
-                BankCodeType.REPAY_BORROW2_MASTER: self.add_repay_borrow,
-                BankCodeType.REPAY_BORROW_MASTER: self.add_repay_borrow,
-                BankCodeType.REPAY_BORROW_INDEX_MASTER: self.add_repay_borrow,
 
             }
 
