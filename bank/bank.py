@@ -55,7 +55,6 @@ class Bank(Base):
                 BankCodeType.REPAY_BORROW: self.add_repay_borrow,
                 BankCodeType.SET_INCENTIVE_RATE2: None,
                 BankCodeType.SET_INCENTIVE_RATE: None,
-                BankCodeType.TEST: None,
                 BankCodeType.UPDATE_PRICE_FROM_ORACLE: self.update_price_from_oracle,
                 BankCodeType.UPDATE_PRICE_INDEX: None,
                 BankCodeType.UPDATE_PRICE: self.update_price,
