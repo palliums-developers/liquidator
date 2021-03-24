@@ -23,6 +23,7 @@ class MonitorThread(Thread):
                 accounts = copy.deepcopy(self.bank.accounts)
                 bank_lock.release()
                 time.sleep(self.INTERVAL)
+                print("version=", version)
                 chain_token_infos = self.client.get_account_state(self.client.get_bank_owner_address(), version).get_token_info_store_resource(accrue_interest=False).tokens
                 currencies = self.client.bank_get_registered_currencies(True)
                 for currency in currencies:
